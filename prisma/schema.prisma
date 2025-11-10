@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  email          String          @unique
+  name           String
+  avatar         String?
+  password       String
+  plan           Plan          @default(FREE)
+  resumes        Resume[]
+  jobDescriptions JobDescription[]
+  subscriptions  Subscription[]
+  interactions   AIInteraction[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model Resume {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String       @db.ObjectId
+  fileUrl     String
+  fileName    String?
+  parsedText  String?
+  analysis    Analysis?
+  matchResults MatchResult[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id])
+}
+
+model JobDescription {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String       @db.ObjectId
+  title       String
+  description String
+  skills      String[]
+  createdAt   DateTime     @default(now())
+
+  user        User         @relation(fields: [userId], references: [id])
+  matchResults MatchResult[]
+}
+
+model Analysis {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  resumeId    String    @unique @db.ObjectId
+  summary     String
+  skills      String[]
+  experience  String[]
+  education   String[]
+  score       Int
+  aiModel     String?
+  createdAt   DateTime  @default(now())
+
+  resume      Resume    @relation(fields: [resumeId], references: [id])
+}
+
+model MatchResult {
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  resumeId        String         @db.ObjectId
+  jobDescriptionId String        @db.ObjectId
+  matchScore      Int
+  missingSkills   String[]
+  suggestedEdits  String[]
+  aiSummary       String?
+  createdAt       DateTime       @default(now())
+
+  resume          Resume         @relation(fields: [resumeId], references: [id])
+  jobDescription  JobDescription @relation(fields: [jobDescriptionId], references: [id])
+}
+
+model Subscription {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String    @db.ObjectId
+  plan        String
+  status      String
+  startDate   DateTime  @default(now())
+  endDate     DateTime?
+  paymentId   String?
+
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model AIInteraction {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String    @db.ObjectId
+  prompt      String
+  response    String
+  model       String
+  tokensUsed  Int?
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+enum Plan {
+  FREE
+  PREMIUM
+}
