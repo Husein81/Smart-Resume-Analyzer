@@ -42,7 +42,6 @@ export async function GET(
       },
     });
 
-    console.log("Fetched resume:", resume);
     if (!resume) {
       return NextResponse.json({ error: "Resume not found" }, { status: 404 });
     }

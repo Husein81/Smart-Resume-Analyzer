@@ -11,12 +11,14 @@ import {
 } from "@/components/ui/card";
 import Icon from "@/components/icon";
 import { useRouter } from "next/navigation";
+import { useUploadResume } from "@/hooks/resumes";
 
 export default function UploadPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
+
+  const uploadResume = useUploadResume();
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -46,28 +48,12 @@ export default function UploadPage() {
   const handleUpload = async () => {
     if (!selectedFile) return;
 
-    setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-
-      const response = await fetch("/api/resumes", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Upload successful:", data);
-        router.push(`/resumes/${data.id}`);
-      } else {
-        alert("Upload failed. Please try again.");
-      }
+      await uploadResume.mutateAsync(selectedFile);
+      router.push("/resumes");
     } catch (error) {
       console.error("Upload error:", error);
       alert("An error occurred. Please try again.");
-    } finally {
-      setIsUploading(false);
     }
   };
 
@@ -163,9 +149,9 @@ export default function UploadPage() {
                 size="lg"
                 className="w-full"
                 onClick={handleUpload}
-                disabled={isUploading}
+                disabled={uploadResume.isPending}
               >
-                {isUploading ? (
+                {uploadResume.isPending ? (
                   <>
                     <Icon name="Loader" className="w-5 h-5 mr-2 animate-spin" />
                     Uploading...

@@ -4,8 +4,10 @@ import { InputField } from "../form-fields/";
 import { signIn } from "next-auth/react";
 import { Button } from "../ui";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const SignInForm = () => {
+  const router = useRouter();
   const form = useForm({
     defaultValues: {
       email: "",
@@ -18,6 +20,7 @@ const SignInForm = () => {
           password: value.password,
           redirect: true,
         });
+        router.push("/");
       } catch (error) {
         console.error("Sign-in error:", error);
       }

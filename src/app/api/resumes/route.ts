@@ -4,12 +4,15 @@ import { isAuthenticated } from "@/lib/middleware";
 import { handleFileUpload } from "@/lib/fileHandler";
 
 import { z } from "zod";
+import { PaginationResponse } from "@/types/schemas";
+import { Resume } from "@/types/resume";
 
 // Query parameters schema
-const ResumeQuerySchema = z.object({
+export const querySchema = z.object({
   limit: z.coerce.number().int().positive().default(10),
   offset: z.coerce.number().int().min(0).default(0),
 });
+export type QueryParams = z.infer<typeof querySchema>;
 
 /**
  * POST /api/resumes
@@ -81,7 +84,7 @@ export async function GET(request: NextRequest) {
 
     // Get and validate query parameters
     const { searchParams } = new URL(request.url);
-    const queryParams = ResumeQuerySchema.parse({
+    const queryParams = querySchema.parse({
       limit: searchParams.get("limit") || "10",
       offset: searchParams.get("offset") || "0",
     });
@@ -108,9 +111,8 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Validate and return response
-    const response = {
-      success: true,
-      resumes,
+    const response: PaginationResponse<Resume> = {
+      data: resumes,
       pagination: {
         total,
         limit,

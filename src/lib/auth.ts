@@ -1,9 +1,20 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    // Add your authentication providers here
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
+    }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -39,7 +50,16 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn() {
+    async signIn({ account, profile }) {
+      console.log(
+        "Sign-in attempt with account:",
+        account,
+        "and profile:",
+        profile
+      );
+      if (account?.provider === "google" && profile?.email) {
+        return true;
+      }
       return true;
     },
     async jwt({ token, user }) {
@@ -57,4 +77,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: "/sign-in", // optional custom sign-in page
+  },
 };

@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Icon from "@/components/icon";
 import ResumeCard from "@/components/resume/ResumeCard";
-import { Resume } from "@/types/resume";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,37 +11,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Icon from "@/components/icon";
-import Link from "next/link";
 import { Spinner } from "@/components/ui/spinner";
+import { useResumes } from "@/hooks/resumes";
+import { Resume } from "@/types/resume";
+import Link from "next/link";
+import { useState } from "react";
 
 export default function ResumesPage() {
-  const [resumes, setResumes] = useState<Resume[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
 
-  // Fetch resumes from API
-  useEffect(() => {
-    const fetchResumes = async () => {
-      try {
-        const response = await fetch("/api/resumes?limit=100");
-        if (response.ok) {
-          const data = await response.json();
-          // API returns { success, resumes, pagination }
-          setResumes(data.resumes || []);
-        } else {
-          console.error("Failed to fetch resumes:", response.status);
-        }
-      } catch (error) {
-        console.error("Error fetching resumes:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data, isLoading, error } = useResumes({ limit: 100 });
 
-    fetchResumes();
-  }, []);
+  const resumes: Resume[] = data?.data || [];
 
   // Filter and sort resumes
   const filteredResumes = resumes
@@ -67,6 +48,14 @@ export default function ResumesPage() {
           return 0;
       }
     });
+
+  if (isLoading || error) {
+    return (
+      <div className="flex items-center h-64 justify-center">
+        <Spinner className="size-12" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -95,7 +84,7 @@ export default function ResumesPage() {
                 <Icon name="FileText" className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{resumes.length}</p>
+                <p className="text-2xl font-bold">{resumes?.length}</p>
                 <p className="text-sm text-muted-foreground">Total Resumes</p>
               </div>
             </div>
@@ -108,7 +97,7 @@ export default function ResumesPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {resumes.filter((r) => r.analysis).length}
+                  {resumes?.filter((r) => r.analysis).length}
                 </p>
                 <p className="text-sm text-muted-foreground">Analyzed</p>
               </div>
@@ -122,12 +111,13 @@ export default function ResumesPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {Math.round(
-                    resumes.reduce(
-                      (acc, r) => acc + (r.analysis?.score || 0),
-                      0
-                    ) / resumes.length
-                  )}
+                  {resumes &&
+                    Math.round(
+                      resumes.reduce(
+                        (acc, r) => acc + (r.analysis?.score || 0),
+                        0
+                      ) / resumes.length
+                    )}
                   %
                 </p>
                 <p className="text-sm text-muted-foreground">Avg Score</p>
@@ -164,15 +154,11 @@ export default function ResumesPage() {
         </div>
 
         {/* Resumes Grid */}
-        {loading ? (
+        {isLoading ? (
           <div className="text-center py-12">
-            <Icon
-              name="Loader"
-              className="w-12 h-12 mx-auto mb-4 animate-spin text-primary"
-            />
-            <Spinner />
+            <Spinner className="w-12 h-12 mx-auto mb-4 animate-spin text-primary" />
           </div>
-        ) : filteredResumes.length > 0 ? (
+        ) : filteredResumes && filteredResumes.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredResumes.map((resume) => (
               <ResumeCard key={resume.id} resume={resume} />

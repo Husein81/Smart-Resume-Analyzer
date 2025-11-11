@@ -1,50 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { Resume } from "@/types/resume";
+import Icon from "@/components/icon";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import Icon from "@/components/icon";
-import Link from "next/link";
 import { Textarea } from "@/components/ui/textarea";
+import { useAnalyzeResume, useResumeById } from "@/hooks/resumes";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function AnalyzePage() {
   const params = useParams();
   const router = useRouter();
   const resumeId = params.id as string;
 
-  const [resume, setResume] = useState<Resume | null>(null);
-  const [loading, setLoading] = useState(true);
   const [jobDescription, setJobDescription] = useState("");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [error, setError] = useState("");
 
-  // Fetch resume from API
-  useEffect(() => {
-    const fetchResume = async () => {
-      try {
-        const response = await fetch(`/api/resumes/${resumeId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setResume(data);
-        } else {
-          console.error("Failed to fetch resume:", response.status);
-          setResume(null);
-        }
-      } catch (error) {
-        console.error("Error fetching resume:", error);
-        setResume(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data: resume, isLoading } = useResumeById(resumeId);
+  const analyzeResume = useAnalyzeResume();
 
-    fetchResume();
-  }, [resumeId]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
@@ -81,10 +57,7 @@ export default function AnalyzePage() {
   }
 
   const handleAnalyze = async () => {
-    setIsAnalyzing(true);
     setProgress(0);
-    setError("");
-
     try {
       // Simulate progress
       const progressInterval = setInterval(() => {
@@ -97,33 +70,20 @@ export default function AnalyzePage() {
         });
       }, 200);
 
-      // Call the analyze API
-      const response = await fetch(`/api/resumes/${resumeId}/analyze`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          jobDescription: jobDescription || undefined,
-        }),
+      await analyzeResume.mutateAsync({
+        resumeId,
+        jobDescription: jobDescription ?? "",
       });
 
       clearInterval(progressInterval);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Analysis failed");
-      }
-
       setProgress(100);
-
       // Wait a moment to show 100% progress
       setTimeout(() => {
         router.push(`/resumes/${resumeId}`);
       }, 500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Analysis failed");
-      setIsAnalyzing(false);
+      console.error(err);
       setProgress(0);
     }
   };
@@ -198,12 +158,12 @@ export default function AnalyzePage() {
               onChange={(e) => setJobDescription(e.target.value)}
               rows={8}
               className="resize-none"
-              disabled={isAnalyzing}
+              disabled={analyzeResume.isPending}
             />
           </div>
 
           {/* Progress Bar */}
-          {isAnalyzing && (
+          {analyzeResume.isPending && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">
@@ -216,7 +176,7 @@ export default function AnalyzePage() {
           )}
 
           {/* Error Message */}
-          {error && (
+          {analyzeResume.error?.message && (
             <div className="flex items-start gap-3 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
               <Icon
                 name="CircleAlert"
@@ -226,7 +186,9 @@ export default function AnalyzePage() {
                 <h4 className="font-semibold text-destructive mb-1">
                   Analysis Failed
                 </h4>
-                <p className="text-sm text-destructive/90">{error}</p>
+                <p className="text-sm text-destructive/90">
+                  {analyzeResume.error.message}
+                </p>
               </div>
             </div>
           )}
@@ -236,10 +198,10 @@ export default function AnalyzePage() {
             <Button
               size="lg"
               onClick={handleAnalyze}
-              disabled={isAnalyzing}
+              disabled={analyzeResume.isPending}
               className="flex-1"
             >
-              {isAnalyzing ? (
+              {analyzeResume.isPending ? (
                 <>
                   <Icon name="Loader" className="w-5 h-5 mr-2 animate-spin" />
                   Analyzing...
@@ -255,7 +217,7 @@ export default function AnalyzePage() {
               variant="outline"
               size="lg"
               onClick={() => router.back()}
-              disabled={isAnalyzing}
+              disabled={analyzeResume.isPending}
             >
               Cancel
             </Button>

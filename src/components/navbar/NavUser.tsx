@@ -4,11 +4,13 @@ import { Button, Shad } from "../ui";
 import { useRouter } from "next/navigation";
 import { Activity } from "react";
 import Icon from "../icon";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const NavUser = () => {
   const { data: session } = useSession();
   const router = useRouter();
   const user = session?.user;
+  const isMobile = useIsMobile();
 
   if (!user)
     return <Button onClick={() => router.push("/sign-in")}>Login</Button>;
@@ -37,7 +39,7 @@ const NavUser = () => {
           </Shad.DropdownMenuItem>
         </Shad.DropdownMenuContent>
       </Shad.DropdownMenu>
-      <Activity mode={user.plan === "FREE" ? "visible" : "hidden"}>
+      <Activity mode={user.plan === "FREE" && !isMobile ? "visible" : "hidden"}>
         <Button>
           <Icon name="Crown" />
           Upgrade

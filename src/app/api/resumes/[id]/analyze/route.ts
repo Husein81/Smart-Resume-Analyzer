@@ -51,30 +51,34 @@ export async function POST(
     const jobDescription = body.jobDescription || "";
 
     const prompt = `You are an expert ATS (Applicant Tracking System) and resume analyzer. 
-Analyze the following resume and provide a comprehensive evaluation.
+        Analyze the following resume and provide a comprehensive evaluation.
 
-${jobDescription ? `Job Description (for context):\n${jobDescription}\n\n` : ""}
+        ${
+          jobDescription
+            ? `Job Description (for context):\n${jobDescription}\n\n`
+            : ""
+        }
 
-Resume Text:
-${resume.parsedText}
+        Resume Text:
+        ${resume.parsedText}
 
-Return ONLY a valid JSON object (no markdown, no code blocks) with these exact fields:
-{
-  "summary": "A 2-3 sentence professional summary of the candidate",
-  "skills": ["skill1", "skill2", "skill3"],
-  "experience": ["job title at company (duration)", "key achievement"],
-  "education": ["degree name from institution", "certification"],
-  "score": 75
-}
+        Return ONLY a valid JSON object (no markdown, no code blocks) with these exact fields:
+        {
+          "summary": "A 2-3 sentence professional summary of the candidate",
+          "skills": ["skill1", "skill2", "skill3"],
+          "experience": ["job title at company (duration)", "key achievement"],
+          "education": ["degree name from institution", "certification"],
+          "score": 75
+        }
 
-The score should be 0-100 based on:
-- Resume completeness and clarity (30%)
-- Skills relevance and depth (25%)
-- Experience quality and achievements (25%)
-- Education and certifications (10%)
-- ATS compatibility (10%)
+        The score should be 0-100 based on:
+        - Resume completeness and clarity (30%)
+        - Skills relevance and depth (25%)
+        - Experience quality and achievements (25%)
+        - Education and certifications (10%)
+        - ATS compatibility (10%)
 
-Be honest with scoring. A score of 60-70 is average, 70-80 is good, 80-90 is excellent, 90+ is exceptional.`;
+        Be honest with scoring. A score of 60-70 is average, 70-80 is good, 80-90 is excellent, 90+ is exceptional.`;
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
@@ -133,7 +137,6 @@ Be honest with scoring. A score of 60-70 is average, 70-80 is good, 80-90 is exc
 
     return NextResponse.json(
       {
-        success: true,
         analysis,
         message: "Resume analyzed successfully",
       },

@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import Icon from "@/components/icon";
 import prisma from "@/lib/prisma";
+import { getServerSession } from "next-auth";
 
 async function getResumeStats() {
   try {
@@ -58,6 +59,8 @@ async function getResumeStats() {
 
 export default async function Home() {
   const stats = await getResumeStats();
+  const session = await getServerSession();
+  const user = session?.user || null;
 
   return (
     <div className="min-h-screen">
@@ -93,7 +96,7 @@ export default async function Home() {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
               <Button size="lg" className="gap-2 px-8 h-12 text-base" asChild>
-                <Link href="/upload">
+                <Link href={user ? "/upload" : "/sign-in"}>
                   <Icon name="Upload" className="w-5 h-5" />
                   Upload Resume
                 </Link>
@@ -104,7 +107,7 @@ export default async function Home() {
                 className="gap-2 px-8 h-12 text-base"
                 asChild
               >
-                <Link href="/resumes">
+                <Link href={user ? "/resumes" : "/sign-in"}>
                   <Icon name="FileText" className="w-5 h-5" />
                   View All Resumes
                 </Link>
@@ -204,7 +207,7 @@ export default async function Home() {
               you stand out.
             </p>
             <Button size="lg" className="gap-2 px-8 h-12" asChild>
-              <Link href="/upload">
+              <Link href={user ? "/upload" : "/sign-in"}>
                 <Icon name="Upload" className="w-5 h-5" />
                 Upload Your Resume
               </Link>

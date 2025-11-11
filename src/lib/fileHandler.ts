@@ -23,7 +23,7 @@ const FileUploadResultSchema = z.object({
   fileSize: z.number().positive(),
 });
 
-const FileValidationResultSchema = z.object({
+export const FileValidationResultSchema = z.object({
   valid: z.boolean(),
   error: z.string().optional(),
 });

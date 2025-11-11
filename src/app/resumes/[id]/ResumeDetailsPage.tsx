@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import Icon from "@/components/icon";
 import Link from "next/link";
+import ScoreCircle from "@/components/resume/ScoreCircle";
 
 type Props = {
   resume: Resume | null;
@@ -36,18 +37,6 @@ export default function ResumeDetailsPage({ resume }: Props) {
       </div>
     );
   }
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600";
-    if (score >= 60) return "text-yellow-600";
-    return "text-red-600";
-  };
-
-  const getScoreBgColor = (score: number) => {
-    if (score >= 80) return "bg-green-600";
-    if (score >= 60) return "bg-yellow-600";
-    return "bg-red-600";
-  };
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -101,42 +90,7 @@ export default function ResumeDetailsPage({ resume }: Props) {
           <div className="p-8 rounded-lg border bg-card">
             <div className="flex flex-col md:flex-row md:items-center gap-8">
               <div className="shrink-0">
-                <div className="relative w-32 h-32">
-                  <svg className="w-32 h-32 transform -rotate-90">
-                    <circle
-                      cx="64"
-                      cy="64"
-                      r="56"
-                      stroke="currentColor"
-                      strokeWidth="8"
-                      fill="transparent"
-                      className="text-muted"
-                    />
-                    <circle
-                      cx="64"
-                      cy="64"
-                      r="56"
-                      stroke="currentColor"
-                      strokeWidth="8"
-                      fill="transparent"
-                      strokeDasharray={`${2 * Math.PI * 56}`}
-                      strokeDashoffset={`${
-                        2 * Math.PI * 56 * (1 - resume.analysis.score / 100)
-                      }`}
-                      className={getScoreBgColor(resume.analysis.score)}
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span
-                      className={`text-3xl font-bold ${getScoreColor(
-                        resume.analysis.score
-                      )}`}
-                    >
-                      {resume.analysis.score}
-                    </span>
-                  </div>
-                </div>
+                <ScoreCircle score={resume.analysis.score} />
               </div>
               <div className="flex-1">
                 <h2 className="text-2xl font-bold mb-2">Overall Score</h2>

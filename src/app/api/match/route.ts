@@ -73,40 +73,40 @@ export async function POST(req: NextRequest) {
 
     const prompt = `You are an expert job matching system. Compare the resume with the job description and provide a detailed matching analysis.
 
-Resume:
-${resume.parsedText}
+      Resume:
+      ${resume.parsedText}
 
-${
-  resume.analysis
-    ? `\nResume Analysis:
-- Score: ${resume.analysis.score}/100
-- Skills: ${resume.analysis.skills.join(", ")}
-- Summary: ${resume.analysis.summary}
-`
-    : ""
-}
+      ${
+        resume.analysis
+          ? `\nResume Analysis:
+      - Score: ${resume.analysis.score}/100
+      - Skills: ${resume.analysis.skills.join(", ")}
+      - Summary: ${resume.analysis.summary}
+      `
+          : ""
+      }
 
-Job Description:
-Title: ${job.title}
-Description: ${job.description}
-Required Skills: ${job.skills.join(", ")}
+      Job Description:
+      Title: ${job.title}
+      Description: ${job.description}
+      Required Skills: ${job.skills.join(", ")}
 
-Return ONLY a valid JSON object (no markdown, no code blocks) with these exact fields:
-{
-  "matchScore": 75,
-  "missingSkills": ["skill1", "skill2"],
-  "suggestedEdits": [
-    "Add more details about X experience",
-    "Highlight Y achievement more prominently"
-  ],
-  "aiSummary": "A detailed summary of how well the resume matches the job, what strengths they have, and what gaps exist."
-}
+      Return ONLY a valid JSON object (no markdown, no code blocks) with these exact fields:
+      {
+        "matchScore": 75,
+        "missingSkills": ["skill1", "skill2"],
+        "suggestedEdits": [
+          "Add more details about X experience",
+          "Highlight Y achievement more prominently"
+        ],
+        "aiSummary": "A detailed summary of how well the resume matches the job, what strengths they have, and what gaps exist."
+      }
 
-matchScore should be 0-100 based on:
-- Skills overlap (40%)
-- Experience relevance (30%)
-- Education requirements (15%)
-- Overall fit (15%)`;
+      matchScore should be 0-100 based on:
+      - Skills overlap (40%)
+      - Experience relevance (30%)
+      - Education requirements (15%)
+      - Overall fit (15%)`;
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",

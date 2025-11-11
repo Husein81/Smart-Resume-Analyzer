@@ -1,17 +1,19 @@
-import { NextRequest } from "next/server";
+import { getServerSession } from "next-auth";
+import { NextRequest, NextResponse } from "next/server";
 
-export function proxy(request: NextRequest) {
-  const pathname = request.nextUrl.pathname;
+export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const session = await getServerSession();
+  console.log(session?.user);
 
-  // Skip next internal paths & API
-  if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/api") ||
-    pathname.includes(".")
-  ) {
-    return;
+  if (!session?.user && (pathname === "/sign-in" || pathname === "/sign-up")) {
+    const homeUrl = new URL("/", request.url);
+    return NextResponse.redirect(homeUrl);
   }
+
+  return NextResponse.next();
 }
+
 export const config = {
   matcher: ["/((?!api|_next|.*\\..*).*)"],
 };

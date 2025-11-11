@@ -14,6 +14,8 @@ import { Resume } from "@/types/resume";
 import Link from "next/link";
 import Icon from "../icon";
 import { Progress } from "@/components/ui/progress";
+import { Activity } from "react";
+import { useDeleteResume } from "@/hooks/resumes";
 
 type ResumeCardProps = {
   resume: Resume;
@@ -22,23 +24,13 @@ type ResumeCardProps = {
 export default function ResumeCard({ resume }: ResumeCardProps) {
   const { id, fileName, analysis, matchResults, createdAt } = resume;
 
+  const deleteResume = useDeleteResume();
+
   // Get data from analysis if available
   const score = analysis?.score ?? null;
   const summary = analysis?.summary ?? null;
   const skills = analysis?.skills ?? [];
   const matchCount = matchResults?.length ?? 0;
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600";
-    if (score >= 60) return "text-yellow-600";
-    return "text-red-600";
-  };
-
-  const getScoreBgColor = (score: number) => {
-    if (score >= 80) return "bg-green-600";
-    if (score >= 60) return "bg-yellow-600";
-    return "bg-red-600";
-  };
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString("en-US", {
@@ -48,9 +40,13 @@ export default function ResumeCard({ resume }: ResumeCardProps) {
     });
   };
 
+  const handleDelete = async (id: string) => {
+    await deleteResume.mutateAsync(id);
+  };
+
   return (
     <Card className="w-full border border-border/50 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-primary/50 group">
-      <CardHeader className="space-y-3">
+      <CardHeader className="space-y-3 relative">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className="p-2.5 rounded-lg bg-primary/10 shrink-0 group-hover:bg-primary/20 transition-colors">
@@ -67,22 +63,28 @@ export default function ResumeCard({ resume }: ResumeCardProps) {
             </div>
           </div>
 
-          {score !== null && (
+          <Activity mode={score !== null ? "visible" : "hidden"}>
             <div className="flex flex-col items-center shrink-0">
-              <div className={`text-2xl font-bold ${getScoreColor(score)}`}>
+              <div
+                className={`text-2xl font-bold bg-linear-to-r from-[#5171FF] to-[#FF97AD] bg-clip-text text-transparent`}
+              >
                 {score}
               </div>
               <div className="text-xs text-muted-foreground">Score</div>
             </div>
-          )}
+          </Activity>
+          <Button
+            variant="outline"
+            onClick={() => handleDelete(id ?? "")}
+            className="size-8 p-0.5 rounded-lg"
+          >
+            <Icon name="Trash" className="w-4 h-4 text-destructive" />
+          </Button>
         </div>
 
-        {score !== null && (
-          <Progress
-            value={score}
-            className={`h-1.5 ${getScoreBgColor(score)}`}
-          />
-        )}
+        <Activity mode={score !== null ? "visible" : "hidden"}>
+          <Progress value={score} className={`h-1.5 bg-primary/10`} />
+        </Activity>
       </CardHeader>
 
       <CardContent className="space-y-3">
@@ -99,7 +101,7 @@ export default function ResumeCard({ resume }: ResumeCardProps) {
         )}
 
         {/* Skills Preview */}
-        {skills.length > 0 && (
+        <Activity mode={skills.length > 0 ? "visible" : "hidden"}>
           <div className="flex flex-wrap gap-1.5">
             {skills.slice(0, 3).map((skill: string, index: number) => (
               <Badge
@@ -116,24 +118,24 @@ export default function ResumeCard({ resume }: ResumeCardProps) {
               </Badge>
             )}
           </div>
-        )}
+        </Activity>
 
         {/* Stats */}
         <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2">
-          {matchCount > 0 && (
+          <Activity mode={matchCount > 0 ? "visible" : "hidden"}>
             <div className="flex items-center gap-1.5">
               <Icon name="Target" className="w-3.5 h-3.5" />
               <span>
                 {matchCount} {matchCount === 1 ? "match" : "matches"}
               </span>
             </div>
-          )}
-          {analysis && (
+          </Activity>
+          <Activity mode={analysis ? "visible" : "hidden"}>
             <div className="flex items-center gap-1.5">
               <Icon name="CircleCheck" className="w-3.5 h-3.5 text-green-600" />
               <span>Analyzed</span>
             </div>
-          )}
+          </Activity>
         </div>
       </CardContent>
 
