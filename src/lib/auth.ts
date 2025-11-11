@@ -9,8 +9,7 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: {
           label: "Email",
-          type: "text",
-          placeholder: "jsmith@example.com",
+          type: "email",
         },
         password: { label: "Password", type: "password" },
       },
@@ -20,7 +19,7 @@ export const authOptions: NextAuthOptions = {
 
         try {
           const res = await fetch(
-            `${process.env.NEXT_AUTH_URL}/api/auth/sign-in`,
+            `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -57,5 +56,5 @@ export const authOptions: NextAuthOptions = {
     },
   },
   session: { strategy: "jwt" },
-  secret: process.env.NEXT_AUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET,
 };

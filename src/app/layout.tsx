@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Providers from "@/components/providers";
+import Navbar from "@/components/navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,11 +25,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-linear-to-br from-background via-background to-primary/5 relative overflow-x-hidden`}
       >
-        {children}
+        {/* Modern Background Pattern */}
+        <div className="fixed inset-0 -z-10 overflow-hidden">
+          {/* Glowing Gradient Orbs */}
+          <div className="absolute top-0 -left-4 w-72 h-72 bg-primary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob shadow-[0_0_100px_60px_rgba(var(--primary),0.3)]"></div>
+          <div className="absolute top-0 -right-4 w-72 h-72 bg-accent/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000 shadow-[0_0_100px_60px_rgba(var(--accent),0.3)]"></div>
+          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-secondary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000 shadow-[0_0_100px_60px_rgba(var(--secondary),0.3)]"></div>
+
+          {/* Additional Glow Effects */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/10 rounded-full filter blur-[120px] animate-pulse-slow"></div>
+          <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-accent/10 rounded-full filter blur-[100px] animate-pulse-slow animation-delay-3000"></div>
+
+          {/* Grid Pattern */}
+          <div className="absolute inset-0 bg-grid-pattern opacity-[0.02] dark:opacity-[0.05]"></div>
+        </div>
+
+        <Providers>
+          <div className="container mx-auto min-h-screen relative">
+            <Navbar />
+            {children}
+          </div>
+        </Providers>
       </body>
     </html>
   );

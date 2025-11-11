@@ -1,0 +1,165 @@
+"use client";
+
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Resume } from "@/types/resume";
+import Link from "next/link";
+import Icon from "../icon";
+import { Progress } from "@/components/ui/progress";
+
+type ResumeCardProps = {
+  resume: Resume;
+};
+
+export default function ResumeCard({ resume }: ResumeCardProps) {
+  const { id, fileName, analysis, matchResults, createdAt } = resume;
+
+  // Get data from analysis if available
+  const score = analysis?.score ?? null;
+  const summary = analysis?.summary ?? null;
+  const skills = analysis?.skills ?? [];
+  const matchCount = matchResults?.length ?? 0;
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return "text-green-600";
+    if (score >= 60) return "text-yellow-600";
+    return "text-red-600";
+  };
+
+  const getScoreBgColor = (score: number) => {
+    if (score >= 80) return "bg-green-600";
+    if (score >= 60) return "bg-yellow-600";
+    return "bg-red-600";
+  };
+
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  return (
+    <Card className="w-full border border-border/50 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-primary/50 group">
+      <CardHeader className="space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            <div className="p-2.5 rounded-lg bg-primary/10 shrink-0 group-hover:bg-primary/20 transition-colors">
+              <Icon name="FileText" className="text-primary w-5 h-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-base font-semibold truncate mb-1">
+                {fileName || "Untitled Resume"}
+              </CardTitle>
+              <CardDescription className="text-xs flex items-center gap-1.5">
+                <Icon name="Calendar" className="w-3 h-3" />
+                {formatDate(createdAt)}
+              </CardDescription>
+            </div>
+          </div>
+
+          {score !== null && (
+            <div className="flex flex-col items-center shrink-0">
+              <div className={`text-2xl font-bold ${getScoreColor(score)}`}>
+                {score}
+              </div>
+              <div className="text-xs text-muted-foreground">Score</div>
+            </div>
+          )}
+        </div>
+
+        {score !== null && (
+          <Progress
+            value={score}
+            className={`h-1.5 ${getScoreBgColor(score)}`}
+          />
+        )}
+      </CardHeader>
+
+      <CardContent className="space-y-3">
+        {/* Summary or Status */}
+        {summary ? (
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {summary}
+          </p>
+        ) : (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Icon name="CircleAlert" className="w-4 h-4" />
+            <span>Not analyzed yet</span>
+          </div>
+        )}
+
+        {/* Skills Preview */}
+        {skills.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {skills.slice(0, 3).map((skill: string, index: number) => (
+              <Badge
+                key={index}
+                variant="secondary"
+                className="text-xs px-2 py-0.5"
+              >
+                {skill}
+              </Badge>
+            ))}
+            {skills.length > 3 && (
+              <Badge variant="outline" className="text-xs px-2 py-0.5">
+                +{skills.length - 3} more
+              </Badge>
+            )}
+          </div>
+        )}
+
+        {/* Stats */}
+        <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2">
+          {matchCount > 0 && (
+            <div className="flex items-center gap-1.5">
+              <Icon name="Target" className="w-3.5 h-3.5" />
+              <span>
+                {matchCount} {matchCount === 1 ? "match" : "matches"}
+              </span>
+            </div>
+          )}
+          {analysis && (
+            <div className="flex items-center gap-1.5">
+              <Icon name="CircleCheck" className="w-3.5 h-3.5 text-green-600" />
+              <span>Analyzed</span>
+            </div>
+          )}
+        </div>
+      </CardContent>
+
+      <CardFooter className="flex gap-2">
+        <Button variant="outline" size="sm" className="flex-1" asChild>
+          <Link href={`/resumes/${id}`}>
+            <Icon name="Eye" className="w-4 h-4 mr-1.5" />
+            View
+          </Link>
+        </Button>
+        {!analysis ? (
+          <Button size="sm" className="flex-1" asChild>
+            <Link href={`/resumes/${id}/analyze`}>
+              <Icon name="Sparkles" className="w-4 h-4 mr-1.5" />
+              Analyze
+            </Link>
+          </Button>
+        ) : (
+          <Button size="sm" className="flex-1" asChild>
+            <Link href={`/match?resumeId=${id}`}>
+              <Icon name="Target" className="w-4 h-4 mr-1.5" />
+              Match
+            </Link>
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
+  );
+}

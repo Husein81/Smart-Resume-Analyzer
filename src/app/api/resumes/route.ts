@@ -2,11 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/middleware";
 import { handleFileUpload } from "@/lib/fileHandler";
-import {
-  ResumeUploadResponseSchema,
-  ResumeListResponseSchema,
-  ErrorResponseSchema,
-} from "@/types/resume";
+
 import { z } from "zod";
 
 // Query parameters schema
@@ -25,10 +21,7 @@ export async function POST(request: NextRequest) {
     const authSession = await isAuthenticated();
 
     if (!authSession) {
-      const errorResponse = ErrorResponseSchema.parse({
-        error: "Unauthorized",
-      });
-      return NextResponse.json(errorResponse, { status: 401 });
+      return NextResponse.json("Unauthorized", { status: 401 });
     }
 
     const userId = authSession.user.id;
@@ -38,16 +31,11 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File | null;
 
     if (!file) {
-      const errorResponse = ErrorResponseSchema.parse({
-        error: "No file provided",
-      });
-      return NextResponse.json(errorResponse, { status: 400 });
+      return NextResponse.json("No file provided", { status: 400 });
     }
 
     // Handle file upload and text extraction
-    const { fileUrl, fileName, parsedText, fileSize } = await handleFileUpload(
-      file
-    );
+    const { fileUrl, fileName, parsedText } = await handleFileUpload(file);
 
     // Create resume record in database
     const resume = await prisma.resume.create({
@@ -68,32 +56,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Validate and return response
-    const response = ResumeUploadResponseSchema.parse({
-      success: true,
-      message: "Resume uploaded successfully",
-      resume: {
-        ...resume,
-        user: resume.user,
-      },
-      metadata: {
-        fileSize,
-        textLength: parsedText.length,
-      },
-    });
-
-    return NextResponse.json(response, { status: 201 });
+    return NextResponse.json(resume);
   } catch (error) {
     console.error("Error uploading resume:", error);
 
-    const errorMessage =
-      error instanceof Error ? error.message : "Failed to upload resume";
-
-    const errorResponse = ErrorResponseSchema.parse({
-      error: errorMessage,
-    });
-
-    return NextResponse.json(errorResponse, { status: 500 });
+    return NextResponse.json("Failed to upload resume", { status: 500 });
   }
 }
 
@@ -107,10 +74,7 @@ export async function GET(request: NextRequest) {
     const authSession = await isAuthenticated();
 
     if (!authSession) {
-      const errorResponse = ErrorResponseSchema.parse({
-        error: "Unauthorized",
-      });
-      return NextResponse.json(errorResponse, { status: 401 });
+      return NextResponse.json("Unauthorized", { status: 401 });
     }
 
     const userId = authSession.user.id;
@@ -144,7 +108,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Validate and return response
-    const response = ResumeListResponseSchema.parse({
+    const response = {
       success: true,
       resumes,
       pagination: {
@@ -153,25 +117,15 @@ export async function GET(request: NextRequest) {
         offset,
         hasMore: offset + limit < total,
       },
-    });
+    };
 
     return NextResponse.json(response);
   } catch (error) {
     console.error("Error fetching resumes:", error);
 
     if (error instanceof z.ZodError) {
-      const firstError = error.issues[0];
-      const errorResponse = ErrorResponseSchema.parse({
-        error: `Invalid query parameters: ${
-          firstError?.message || "Validation failed"
-        }`,
-      });
-      return NextResponse.json(errorResponse, { status: 400 });
+      return NextResponse.json({ status: 400 });
     }
-
-    const errorResponse = ErrorResponseSchema.parse({
-      error: "Failed to fetch resumes",
-    });
-    return NextResponse.json(errorResponse, { status: 500 });
+    return NextResponse.json("Internal Server Error", { status: 500 });
   }
 }

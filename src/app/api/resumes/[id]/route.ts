@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/middleware";
 import { deleteFile } from "@/lib/fileHandler";
-import { ResumeUpdateRequestSchema, ErrorResponseSchema } from "@/types/resume";
-import { z } from "zod";
 
 /**
  * GET /api/resumes/[id]
@@ -44,6 +42,7 @@ export async function GET(
       },
     });
 
+    console.log("Fetched resume:", resume);
     if (!resume) {
       return NextResponse.json({ error: "Resume not found" }, { status: 404 });
     }
@@ -53,97 +52,13 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    return NextResponse.json({ success: true, resume });
+    return NextResponse.json(resume);
   } catch (error) {
     console.error("Error fetching resume:", error);
     return NextResponse.json(
       { error: "Failed to fetch resume" },
       { status: 500 }
     );
-  }
-}
-
-/**
- * PATCH /api/resumes/[id]
- * Update a resume
- */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const authSession = await isAuthenticated();
-
-    if (!authSession) {
-      const errorResponse = ErrorResponseSchema.parse({
-        error: "Unauthorized",
-      });
-      return NextResponse.json(errorResponse, { status: 401 });
-    }
-
-    const { id } = await params;
-    const userId = authSession.user.id;
-
-    // Check if resume exists and user owns it
-    const existingResume = await prisma.resume.findUnique({
-      where: { id },
-    });
-
-    if (!existingResume) {
-      const errorResponse = ErrorResponseSchema.parse({
-        error: "Resume not found",
-      });
-      return NextResponse.json(errorResponse, { status: 404 });
-    }
-
-    if (existingResume.userId !== userId) {
-      const errorResponse = ErrorResponseSchema.parse({
-        error: "Forbidden",
-      });
-      return NextResponse.json(errorResponse, { status: 403 });
-    }
-
-    // Get and validate update data
-    const body = await request.json();
-    const validatedData = ResumeUpdateRequestSchema.parse(body);
-
-    // Update resume
-    const updatedResume = await prisma.resume.update({
-      where: { id },
-      data: {
-        ...(validatedData.fileName && { fileName: validatedData.fileName }),
-        ...(validatedData.parsedText && {
-          parsedText: validatedData.parsedText,
-        }),
-        updatedAt: new Date(),
-      },
-      include: {
-        analysis: true,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: "Resume updated successfully",
-      resume: updatedResume,
-    });
-  } catch (error) {
-    console.error("Error updating resume:", error);
-
-    if (error instanceof z.ZodError) {
-      const firstError = error.issues[0];
-      const errorResponse = ErrorResponseSchema.parse({
-        error: `Invalid update data: ${
-          firstError?.message || "Validation failed"
-        }`,
-      });
-      return NextResponse.json(errorResponse, { status: 400 });
-    }
-
-    const errorResponse = ErrorResponseSchema.parse({
-      error: "Failed to update resume",
-    });
-    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 
