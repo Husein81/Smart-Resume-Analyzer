@@ -3,10 +3,13 @@ import Link from "next/link";
 import { Shad } from "../ui";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Icon from "../icon";
-import { Activity } from "react";
+import { Activity, useEffectEvent } from "react";
+import { useEffect, useState } from "react";
 
 const NavItems = () => {
   const isMobile = useIsMobile();
+  const [mounted, setMounted] = useState(false);
+
   const items = [
     {
       label: "Upload Resume",
@@ -34,6 +37,14 @@ const NavItems = () => {
       description: "Manage your account settings and preferences.",
     },
   ];
+  const handleMounted = useEffectEvent(() => {
+    setMounted(true);
+  });
+
+  useEffect(() => {
+    handleMounted();
+  }, []);
+  if (!mounted) return null;
 
   return (
     <Activity mode={isMobile ? "hidden" : "visible"}>
@@ -69,4 +80,5 @@ const NavItems = () => {
     </Activity>
   );
 };
+
 export default NavItems;

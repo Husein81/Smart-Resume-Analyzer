@@ -1,4 +1,4 @@
-import { resumesServer } from "@/servers/resumes";
+import { resumesServer } from "@/server/resumes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useResumes = (params: { limit?: number }) =>

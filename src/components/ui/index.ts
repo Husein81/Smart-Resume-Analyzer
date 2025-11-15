@@ -9,6 +9,18 @@ import {
   CardContent,
 } from "./card";
 import {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogClose,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from "./dialog";
+import {
   DropdownMenu,
   DropdownMenuPortal,
   DropdownMenuTrigger,
@@ -26,6 +38,14 @@ import {
   DropdownMenuSubContent,
 } from "./dropdown-menu";
 import {
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+  EmptyMedia,
+} from "./empty";
+import {
   NavigationMenu,
   NavigationMenuList,
   NavigationMenuItem,
@@ -40,8 +60,10 @@ import {
 export { Button } from "./button";
 export { Label } from "./label";
 export { Input } from "./input";
+export { Textarea } from "./textarea";
 export { Badge } from "./badge";
 export { Progress } from "./progress";
+export { Spinner } from "./spinner";
 
 export const Shad = {
   Avatar,
@@ -54,6 +76,16 @@ export const Shad = {
   CardAction,
   CardDescription,
   CardContent,
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogClose,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
   DropdownMenu,
   DropdownMenuPortal,
   DropdownMenuTrigger,
@@ -69,6 +101,12 @@ export const Shad = {
   DropdownMenuSub,
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
+  Empty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent,
+  EmptyMedia,
   NavigationMenu,
   NavigationMenuList,
   NavigationMenuItem,

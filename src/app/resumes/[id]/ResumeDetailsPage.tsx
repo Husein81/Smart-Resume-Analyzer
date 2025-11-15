@@ -1,13 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { Resume, MatchResult } from "@/types/resume";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import Empty from "@/components/Empty";
 import Icon from "@/components/icon";
-import Link from "next/link";
 import ScoreCircle from "@/components/resume/ScoreCircle";
+import { Badge, Button, Progress } from "@/components/ui";
+import { cn } from "@/lib/utils";
+import { MatchResult, Resume } from "@/types/resume";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Activity, useState } from "react";
 
 type Props = {
   resume: Resume | null;
@@ -15,25 +16,17 @@ type Props = {
 
 export default function ResumeDetailsPage({ resume }: Props) {
   const router = useRouter();
+  const [showMore, setShowMore] = useState(false);
 
   if (!resume) {
     return (
       <div className="container mx-auto px-4 py-12">
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-            <Icon name="FileX" className="w-8 h-8 text-muted-foreground" />
-          </div>
-          <h1 className="text-2xl font-bold mb-2">Resume Not Found</h1>
-          <p className="text-muted-foreground mb-4">
-            The resume you&apos;re looking for doesn&apos;t exist.
-          </p>
-          <Button asChild>
-            <Link href="/resumes">
-              <Icon name="ArrowLeft" className="w-4 h-4 mr-2" />
-              Back to Resumes
-            </Link>
-          </Button>
-        </div>
+        <Empty
+          title="No Resume Found"
+          icon="FileX"
+          description="The resume you are looking for does not exist."
+          backTo="/resumes"
+        />
       </div>
     );
   }
@@ -61,7 +54,7 @@ export default function ResumeDetailsPage({ resume }: Props) {
           <div className="flex gap-2">
             {!resume.analysis ? (
               <Button size="lg" asChild>
-                <Link href={`/resumes/${resume.id}/analyze`}>
+                <Link href={`/resumes/${resume.id}/analysis`}>
                   <Icon name="Sparkles" className="w-5 h-5 mr-2" />
                   Analyze Resume
                 </Link>
@@ -69,7 +62,7 @@ export default function ResumeDetailsPage({ resume }: Props) {
             ) : (
               <>
                 <Button variant="outline" size="lg" asChild>
-                  <Link href={`/resumes/${resume.id}/analyze`}>
+                  <Link href={`/resumes/${resume.id}/analysis`}>
                     <Icon name="RefreshCw" className="w-5 h-5 mr-2" />
                     Re-analyze
                   </Link>
@@ -157,7 +150,7 @@ export default function ResumeDetailsPage({ resume }: Props) {
           )}
 
           {/* Education */}
-          {resume.analysis && (
+          <Activity mode={resume.analysis ? "visible" : "hidden"}>
             <div className="p-6 rounded-lg border bg-card">
               <div className="flex items-center gap-2 mb-4">
                 <Icon name="GraduationCap" className="w-5 h-5 text-primary" />
@@ -175,52 +168,74 @@ export default function ResumeDetailsPage({ resume }: Props) {
                 ))}
               </ul>
             </div>
-          )}
+          </Activity>
 
           {/* Match Results */}
-          {resume.matchResults && resume.matchResults.length > 0 && (
+          <Activity
+            mode={
+              resume.matchResults && resume.matchResults.length > 0
+                ? "visible"
+                : "hidden"
+            }
+          >
             <div className="p-6 rounded-lg border bg-card">
               <div className="flex items-center gap-2 mb-4">
                 <Icon name="Target" className="w-5 h-5 text-primary" />
                 <h3 className="text-xl font-bold">Job Matches</h3>
               </div>
               <div className="space-y-3">
-                {resume.matchResults.map(
-                  (match: MatchResult, index: number) => (
+                {resume.matchResults &&
+                  resume.matchResults.map((match: MatchResult, index) => (
                     <div
                       key={index}
                       className="p-3 rounded-lg border bg-background"
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium">
-                          {match.jobDescriptionId}
-                        </span>
+                        <div className="font-medium flex flex-col gap-2">
+                          {match.jobDescription?.title}
+                          <span className="text-xs text-gray-400">
+                            Job ID: {match.jobDescriptionId}
+                          </span>
+                        </div>
                         <Badge variant="outline">{match.matchScore}%</Badge>
                       </div>
                       <Progress value={match.matchScore} className="h-2" />
                     </div>
-                  )
-                )}
+                  ))}
               </div>
             </div>
-          )}
+          </Activity>
         </div>
 
         {/* Parsed Text */}
-        {resume.parsedText && (
+        <Activity mode={resume.parsedText ? "visible" : "hidden"}>
           <div className="p-6 rounded-lg border bg-card">
             <div className="flex items-center gap-2 mb-4">
               <Icon name="FileText" className="w-5 h-5 text-primary" />
               <h3 className="text-xl font-bold">Parsed Resume Text</h3>
             </div>
-            <div className="p-4 rounded-lg bg-muted font-mono text-sm whitespace-pre-wrap">
-              {resume.parsedText}
+            <div
+              className={
+                "p-4 rounded-lg bg-muted font-mono text-sm whitespace-pre-wrap"
+              }
+            >
+              <span
+                className={cn("line-clamp-6", showMore && "line-clamp-none")}
+              >
+                {resume.parsedText}
+              </span>
+              <span
+                onClick={() => setShowMore(!showMore)}
+                className="mt-2 hover:underline text-xs text-primary cursor-pointer"
+              >
+                {showMore ? "Show Less" : "Show More"}
+              </span>
             </div>
           </div>
-        )}
+        </Activity>
 
         {/* No Analysis Message */}
-        {!resume.analysis && (
+        <Activity mode={resume.analysis ? "hidden" : "visible"}>
           <div className="p-8 rounded-lg border bg-card text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
               <Icon name="Sparkles" className="w-8 h-8 text-primary" />
@@ -233,13 +248,13 @@ export default function ResumeDetailsPage({ resume }: Props) {
               areas for improvement.
             </p>
             <Button size="lg" asChild>
-              <Link href={`/resumes/${resume.id}/analyze`}>
+              <Link href={`/resumes/${resume.id}/analysis`}>
                 <Icon name="Sparkles" className="w-5 h-5 mr-2" />
                 Start Analysis
               </Link>
             </Button>
           </div>
-        )}
+        </Activity>
       </div>
     </div>
   );

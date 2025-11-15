@@ -6,6 +6,7 @@ import { z } from "zod";
 // Schema for job description update
 const JobDescriptionUpdateSchema = z.object({
   title: z.string().min(1).optional(),
+  companyName: z.string().min(1).optional(),
   description: z.string().min(10).optional(),
   skills: z.array(z.string()).min(1).optional(),
 });
@@ -16,7 +17,7 @@ const JobDescriptionUpdateSchema = z.object({
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -25,7 +26,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     const job = await prisma.jobDescription.findFirst({
       where: {
@@ -77,9 +78,9 @@ export async function GET(
  * PATCH /api/jobs/[id]
  * Update a job description
  */
-export async function PATCH(
+export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -88,7 +89,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
 
     // Validate input
@@ -146,7 +147,7 @@ export async function PATCH(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Check authentication
@@ -155,7 +156,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Check if job exists and belongs to user
     const existingJob = await prisma.jobDescription.findFirst({
@@ -173,8 +174,13 @@ export async function DELETE(
     }
 
     // Delete job (cascade will delete match results)
-    await prisma.jobDescription.delete({
-      where: { id },
+    await prisma.$transaction(async (tsx) => {
+      await tsx.matchResult.deleteMany({
+        where: { jobDescriptionId: id },
+      });
+      await tsx.jobDescription.delete({
+        where: { id },
+      });
     });
 
     return NextResponse.json(

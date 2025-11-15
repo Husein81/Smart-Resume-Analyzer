@@ -1,11 +1,13 @@
+import { isAuthenticated } from "@/lib/middleware";
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { isAuthenticated } from "@/lib/middleware";
 import { z } from "zod";
+import { Prisma } from "../../../../generated/prisma";
 
 // Schema for job description creation
 const JobDescriptionCreateSchema = z.object({
   title: z.string().min(1, "Title is required"),
+  companyName: z.string().min(1, "Company name is required"),
   description: z.string().min(10, "Description must be at least 10 characters"),
   skills: z.array(z.string()).min(1, "At least one skill is required"),
 });
@@ -28,7 +30,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
+    const body: Prisma.JobDescriptionCreateInput = await req.json();
 
     // Validate input
     const validatedData = JobDescriptionCreateSchema.parse(body);
@@ -37,6 +39,7 @@ export async function POST(req: NextRequest) {
       data: {
         userId: authSession.user.id,
         title: validatedData.title,
+        companyName: validatedData.companyName,
         description: validatedData.description,
         skills: validatedData.skills,
       },
@@ -93,12 +96,7 @@ export async function GET(req: NextRequest) {
           userId: authSession.user.id,
         },
         include: {
-          matchResults: {
-            select: {
-              id: true,
-              matchScore: true,
-            },
-          },
+          matchResults: true,
         },
         orderBy: {
           createdAt: "desc",
@@ -113,19 +111,16 @@ export async function GET(req: NextRequest) {
       }),
     ]);
 
-    return NextResponse.json(
-      {
-        success: true,
-        jobs,
-        pagination: {
-          total,
-          limit: query.limit,
-          offset: query.offset,
-          hasMore: query.offset + query.limit < total,
-        },
+    const result = {
+      data: jobs,
+      pagination: {
+        total,
+        limit: query.limit,
+        offset: query.offset,
+        hasMore: query.offset + query.limit < total,
       },
-      { status: 200 }
-    );
+    };
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     console.error("Error fetching jobs:", error);
 

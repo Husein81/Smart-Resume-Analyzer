@@ -1,6 +1,10 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import prisma from "./prisma";
+import { Prisma } from "../../generated/prisma";
+import crypto from "crypto";
+import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -51,13 +55,33 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ account, profile }) {
-      console.log(
-        "Sign-in attempt with account:",
-        account,
-        "and profile:",
-        profile
-      );
-      if (account?.provider === "google" && profile?.email) {
+      if (account?.provider === "google") {
+        const email = profile?.email;
+        if (!email) return false;
+
+        let user = await prisma.user.findUnique({
+          where: { email },
+        });
+
+        // Sign up with google
+        if (!user) {
+          // Generate a random strong password
+          const randomPassword = crypto.randomBytes(32).toString("hex");
+          const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+          const data: Prisma.UserCreateInput = {
+            email,
+            name: profile?.name ?? "",
+            avatar: profile?.image,
+            plan: "FREE",
+            password: hashedPassword,
+          };
+
+          user = await prisma.user.create({
+            data,
+          });
+        }
+
         return true;
       }
       return true;

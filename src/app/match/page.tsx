@@ -1,8 +1,11 @@
-export default async function Page({
+import MatchDetails from "./MatchDetails";
+
+export default async function MatchPage({
   searchParams,
 }: {
   searchParams: Promise<{ resumeId: string }>;
 }) {
   const { resumeId } = await searchParams;
-  return <div>{resumeId}</div>;
+
+  return <MatchDetails resumeId={resumeId} />;
 }

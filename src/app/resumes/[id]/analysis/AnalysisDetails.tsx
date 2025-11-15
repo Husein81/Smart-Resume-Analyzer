@@ -6,13 +6,11 @@ import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { useAnalyzeResume, useResumeById } from "@/hooks/resumes";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function AnalyzePage() {
-  const params = useParams();
+export default function AnalysisDetails({ resumeId }: { resumeId: string }) {
   const router = useRouter();
-  const resumeId = params.id as string;
 
   const [jobDescription, setJobDescription] = useState("");
   const [progress, setProgress] = useState(0);

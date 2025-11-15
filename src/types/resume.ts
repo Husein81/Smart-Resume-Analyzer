@@ -46,8 +46,23 @@ export const JobDescriptionSchema = z.object({
   id: z.string().optional(),
   userId: z.string(),
   title: z.string(),
+  companyName: z.string(),
   description: z.string(),
   skills: z.array(z.string()),
+  matchResults: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        resumeId: z.string(),
+        jobDescriptionId: z.string(),
+        matchScore: z.number().min(0).max(100),
+        missingSkills: z.array(z.string()),
+        suggestedEdits: z.array(z.string()),
+        aiSummary: z.string().nullable().optional(),
+        createdAt: z.date().optional(),
+      })
+    )
+    .optional(),
   createdAt: z.date().optional(),
 });
 
@@ -82,6 +97,7 @@ export const MatchResultSchema = z.object({
   suggestedEdits: z.array(z.string()),
   aiSummary: z.string().nullable().optional(),
   createdAt: z.date().optional(),
+  jobDescription: JobDescriptionSchema.optional(),
 });
 
 export type MatchResult = z.infer<typeof MatchResultSchema>;

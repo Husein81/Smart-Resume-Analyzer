@@ -17,7 +17,7 @@ export const resumesServer = {
       throw error;
     }
   },
-  getResumeById: async (id: string) => {
+  getResumeById: async (id: string): Promise<Resume> => {
     try {
       const response = await fetch(`/api/resumes/${id}`);
       if (!response.ok) {
@@ -27,6 +27,7 @@ export const resumesServer = {
       return data;
     } catch (error) {
       console.error("Error fetching resume:", error);
+      throw error;
     }
   },
   uploadResume: async (file: File) => {
@@ -49,7 +50,7 @@ export const resumesServer = {
   },
   analyzeResume: async (id: string, jobDescription?: string) => {
     try {
-      const response = await fetch(`/api/resumes/${id}/analyze`, {
+      const response = await fetch(`/api/resumes/${id}/analysis`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

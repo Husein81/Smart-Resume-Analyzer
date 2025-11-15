@@ -14,7 +14,7 @@ import { Resume } from "@/types/resume";
 import Link from "next/link";
 import Icon from "../icon";
 import { Progress } from "@/components/ui/progress";
-import { Activity } from "react";
+import { Activity, useState } from "react";
 import { useDeleteResume } from "@/hooks/resumes";
 
 type ResumeCardProps = {
@@ -23,6 +23,7 @@ type ResumeCardProps = {
 
 export default function ResumeCard({ resume }: ResumeCardProps) {
   const { id, fileName, analysis, matchResults, createdAt } = resume;
+  const [showMore, setShowMore] = useState(false);
 
   const deleteResume = useDeleteResume();
 
@@ -66,7 +67,7 @@ export default function ResumeCard({ resume }: ResumeCardProps) {
           <Activity mode={score !== null ? "visible" : "hidden"}>
             <div className="flex flex-col items-center shrink-0">
               <div
-                className={`text-2xl font-bold bg-linear-to-r from-[#5171FF] to-[#FF97AD] bg-clip-text text-transparent`}
+                className={`text-2xl font-bold bg-linear-to-r from-violet to-pink bg-clip-text text-transparent`}
               >
                 {score}
               </div>
@@ -103,18 +104,24 @@ export default function ResumeCard({ resume }: ResumeCardProps) {
         {/* Skills Preview */}
         <Activity mode={skills.length > 0 ? "visible" : "hidden"}>
           <div className="flex flex-wrap gap-1.5">
-            {skills.slice(0, 3).map((skill: string, index: number) => (
-              <Badge
-                key={index}
-                variant="secondary"
-                className="text-xs px-2 py-0.5"
-              >
-                {skill}
-              </Badge>
-            ))}
+            {(showMore ? skills : skills.slice(0, 3)).map(
+              (skill: string, index: number) => (
+                <Badge
+                  key={index}
+                  variant="secondary"
+                  className="text-xs px-2 py-0.5"
+                >
+                  {skill}
+                </Badge>
+              )
+            )}
             {skills.length > 3 && (
-              <Badge variant="outline" className="text-xs px-2 py-0.5">
-                +{skills.length - 3} more
+              <Badge
+                onClick={() => setShowMore(!showMore)}
+                variant="outline"
+                className="text-xs px-2 py-0.5 cursor-pointer"
+              >
+                {showMore ? `less` : `+${skills.length - 3} more`}
               </Badge>
             )}
           </div>
@@ -148,7 +155,7 @@ export default function ResumeCard({ resume }: ResumeCardProps) {
         </Button>
         {!analysis ? (
           <Button size="sm" className="flex-1" asChild>
-            <Link href={`/resumes/${id}/analyze`}>
+            <Link href={`/resumes/${id}/analysis`}>
               <Icon name="Sparkles" className="w-4 h-4 mr-1.5" />
               Analyze
             </Link>
