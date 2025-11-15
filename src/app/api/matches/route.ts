@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/lib/middleware";
 import { z } from "zod";
 import { groq } from "@/lib/groq";
+import { checkFeatureAccess, incrementUsage } from "@/lib/subscription";
 
 // Query parameters schema
 const MatchQuerySchema = z.object({
@@ -131,6 +132,24 @@ export async function POST(req: NextRequest) {
     const authSession = await isAuthenticated();
     if (!authSession) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check usage limits
+    const { canAccess } = await checkFeatureAccess(
+      authSession.user.id,
+      "matchesPerMonth"
+    );
+
+    if (!canAccess) {
+      return NextResponse.json(
+        {
+          error: "Match limit reached",
+          message:
+            "You've reached your monthly match limit. Upgrade to Premium for unlimited access.",
+          remaining: 0,
+        },
+        { status: 403 }
+      );
     }
 
     const { resumeId, jobId } = await req.json();
@@ -280,6 +299,16 @@ export async function POST(req: NextRequest) {
         aiSummary: matchData.aiSummary || "No summary available",
       },
     });
+
+    // Log AI usage
+    await incrementUsage(
+      authSession.user.id,
+      "match",
+      `match resume with job: ${job.title}`,
+      JSON.stringify(matchData),
+      "llama-3.3-70b-versatile",
+      completion.usage?.total_tokens
+    );
 
     return NextResponse.json(
       {

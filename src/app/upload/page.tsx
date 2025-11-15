@@ -12,11 +12,17 @@ import {
 import Icon from "@/components/icon";
 import { useRouter } from "next/navigation";
 import { useUploadResume } from "@/hooks/resumes";
+import { useGetUsage } from "@/hooks/subscriptions";
+import UpgradeModal from "@/components/subscription/UpgradeModal";
 
 export default function UploadPage() {
+  const router = useRouter();
+
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const router = useRouter();
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+
+  const { data: usage } = useGetUsage();
 
   const uploadResume = useUploadResume();
 
@@ -33,12 +39,24 @@ export default function UploadPage() {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
+    if (!usage) return;
+    if (usage?.limits?.resumes?.used === usage?.limits.resumes.limit) {
+      setIsUpgradeModalOpen(true);
+      return;
+    }
     if (file) {
       setSelectedFile(file);
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!usage) return;
+
+    if (usage?.limits?.resumes?.used === usage?.limits.resumes.limit) {
+      setIsUpgradeModalOpen(true);
+      return;
+    }
+
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
@@ -124,7 +142,18 @@ export default function UploadPage() {
                     </p>
                     <p className="text-muted-foreground">or</p>
                   </div>
-                  <div>
+                  <div
+                    onClick={() => {
+                      if (!usage) return;
+                      if (
+                        usage?.limits?.resumes?.used ===
+                        usage?.limits.resumes.limit
+                      ) {
+                        setIsUpgradeModalOpen(true);
+                        return;
+                      }
+                    }}
+                  >
                     <input
                       type="file"
                       id="file-upload"
@@ -132,8 +161,11 @@ export default function UploadPage() {
                       accept=".pdf,.docx,.doc,.txt"
                       onChange={handleFileSelect}
                     />
-                    <Button asChild>
-                      <label htmlFor="file-upload" className="cursor-pointer">
+                    <Button>
+                      <label
+                        htmlFor="file-upload"
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
                         <Icon name="FileText" className="w-4 h-4 mr-2" />
                         Browse Files
                       </label>
@@ -204,6 +236,11 @@ export default function UploadPage() {
           </Card>
         </div>
       </div>
+      <UpgradeModal
+        open={isUpgradeModalOpen}
+        feature="resume uploads"
+        onClose={() => setIsUpgradeModalOpen(false)}
+      />
     </div>
   );
 }

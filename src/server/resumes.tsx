@@ -1,5 +1,4 @@
-import { Resume } from "@/types/resume";
-import { PaginationResponse } from "@/types/schemas";
+import { Resume, PaginationResponse } from "@/types/schemas";
 
 export const resumesServer = {
   getResumes: async (params: {

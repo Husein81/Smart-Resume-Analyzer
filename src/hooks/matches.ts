@@ -1,6 +1,6 @@
 import { jobsServer } from "@/server/jobs";
 import { matchesServer } from "@/server/matches";
-import type { JobDescription } from "@/types/resume";
+import type { JobDescription } from "@/types/schemas";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useJobs = (params: { limit?: number; offset?: number }) =>

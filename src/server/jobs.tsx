@@ -1,4 +1,4 @@
-import { JobDescription } from "@/types/resume";
+import { JobDescription } from "@/types/schemas";
 import { PaginationResponse } from "@/types/schemas";
 
 export const jobsServer = {

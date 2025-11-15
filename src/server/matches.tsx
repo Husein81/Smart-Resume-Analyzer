@@ -1,4 +1,4 @@
-import { MatchResult } from "@/types/resume";
+import { MatchResult } from "@/types/schemas";
 import { PaginationResponse } from "@/types/schemas";
 
 export const matchesServer = {

@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Resume } from "@/types/resume";
+import { Resume } from "@/types/schemas";
 import Link from "next/link";
 import Icon from "../icon";
 import { Progress } from "@/components/ui/progress";

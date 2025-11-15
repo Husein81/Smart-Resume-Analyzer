@@ -5,7 +5,7 @@ import Icon from "@/components/icon";
 import ScoreCircle from "@/components/resume/ScoreCircle";
 import { Badge, Button, Progress } from "@/components/ui";
 import { cn } from "@/lib/utils";
-import { MatchResult, Resume } from "@/types/resume";
+import { MatchResult, Resume } from "@/types/schemas";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Activity, useState } from "react";

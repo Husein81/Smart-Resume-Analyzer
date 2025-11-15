@@ -8,6 +8,14 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatar: true,
+        plan: true,
+        password: true,
+      },
     });
 
     if (!user) {
@@ -22,7 +30,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json(user);
+    // Return user without password
+    const { password: _, ...userWithoutPassword } = user;
+    return NextResponse.json(userWithoutPassword);
   } catch (error) {
     console.error("Error during sign-in:", error);
     return NextResponse.json({ error: "Failed to sign in" }, { status: 500 });

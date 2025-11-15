@@ -25,22 +25,33 @@ const NavUser = () => {
           </Shad.Avatar>
         </Shad.DropdownMenuTrigger>
         <Shad.DropdownMenuContent align="end" className="w-48">
+          <Shad.DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => router.push("/subscription")}
+          >
+            <Icon name="CreditCard" className="w-4 h-4 mr-2" />
+            Subscription
+          </Shad.DropdownMenuItem>
           <Shad.DropdownMenuItem className="cursor-pointer">
+            <Icon name="User" className="w-4 h-4 mr-2" />
             Profile
           </Shad.DropdownMenuItem>
           <Shad.DropdownMenuItem className="cursor-pointer">
+            <Icon name="Settings" className="w-4 h-4 mr-2" />
             Settings
           </Shad.DropdownMenuItem>
+          <Shad.DropdownMenuSeparator />
           <Shad.DropdownMenuItem
             onClick={() => signOut()}
-            className="cursor-pointer"
+            className="cursor-pointer text-destructive"
           >
+            <Icon name="LogOut" className="w-4 h-4 mr-2" />
             Logout
           </Shad.DropdownMenuItem>
         </Shad.DropdownMenuContent>
       </Shad.DropdownMenu>
       <Activity mode={user.plan === "FREE" && !isMobile ? "visible" : "hidden"}>
-        <Button>
+        <Button onClick={() => router.push("/pricing")}>
           <Icon name="Crown" />
           Upgrade
         </Button>
