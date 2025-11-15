@@ -66,6 +66,7 @@ export { Progress } from "./progress";
 export { Separator } from "./separator";
 export { Spinner } from "./spinner";
 export { Switch } from "./switch";
+
 export const Shad = {
   Avatar,
   AvatarImage,

@@ -88,7 +88,7 @@ const NavUser = () => {
       </Shad.DropdownMenu>
 
       <Activity mode={user.plan === "FREE" && !isMobile ? "visible" : "hidden"}>
-        <Button>
+        <Button onClick={() => router.push("/pricing")}>
           <Icon name="Crown" />
           Upgrade
         </Button>

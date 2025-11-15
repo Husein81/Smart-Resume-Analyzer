@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
+import { checkFeatureAccess } from "@/lib/subscription";
 
 // Schema for job description creation
 const JobDescriptionCreateSchema = z.object({
@@ -28,6 +29,23 @@ export async function POST(req: NextRequest) {
     const authSession = await isAuthenticated();
     if (!authSession) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check usage limits
+    const { canAccess, limit } = await checkFeatureAccess(
+      authSession.user.id,
+      "jobDescriptions"
+    );
+
+    if (!canAccess) {
+      return NextResponse.json(
+        {
+          error: "Job description limit reached",
+          message: `You've reached your job description limit (${limit}). Upgrade to Premium for unlimited job descriptions.`,
+          remaining: 0,
+        },
+        { status: 403 }
+      );
     }
 
     const body: Prisma.JobDescriptionCreateInput = await req.json();

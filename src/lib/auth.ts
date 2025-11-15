@@ -82,7 +82,7 @@ export const authOptions: NextAuthOptions = {
         let user = await prisma.user.findUnique({
           where: { email },
         });
-
+        console.log("Google sign-in user:", user);
         // Sign up with google
         if (!user) {
           // Generate a random strong password
