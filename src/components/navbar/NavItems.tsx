@@ -27,11 +27,6 @@ const NavItems = () => {
       description: "View your analytics and performance insights.",
     },
     {
-      label: "Job Matches",
-      href: "/matches",
-      description: "Find the best job matches for your resume.",
-    },
-    {
       label: "Profile",
       href: "/profile",
       description: "Manage your account settings and preferences.",

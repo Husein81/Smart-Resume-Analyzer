@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output   = "../src/app/generated/prisma"
 }
 
 datasource db {
@@ -81,7 +81,7 @@ model Analysis {
 model Subscription {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
   userId    String    @db.ObjectId
-  plan      String
+  plan      Plan      @default(FREE)
   status    String
   startDate DateTime  @default(now())
   endDate   DateTime?

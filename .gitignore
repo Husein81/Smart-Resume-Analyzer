@@ -41,4 +41,5 @@ yarn-error.log*
 next-env.d.ts
 
 /generated/prisma
+src/app/generated/prisma
 /public/uploads

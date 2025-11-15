@@ -2,7 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import prisma from "./prisma";
-import { Prisma } from "../../generated/prisma";
+import { Prisma } from "@/app/generated/prisma";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 
@@ -81,20 +81,52 @@ export const authOptions: NextAuthOptions = {
             data,
           });
         }
-
-        return true;
       }
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account, profile }) {
       if (user) {
-        token.user = user;
+        // Store user ID and basic info in token
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+        token.avatar = user.avatar;
+        token.plan = user.plan;
       }
+
+      // Handle Google sign-in
+      if (account?.provider === "google" && profile?.email) {
+        const dbUser = await prisma.user.findUnique({
+          where: { email: profile.email },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            avatar: true,
+            plan: true,
+          },
+        });
+
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.email = dbUser.email;
+          token.name = dbUser.name;
+          token.avatar = dbUser.avatar ?? "";
+          token.plan = dbUser.plan;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
-      if (token.user) {
-        session.user = token.user;
+      if (token) {
+        session.user = {
+          id: token.id as string,
+          email: token.email as string,
+          name: token.name as string,
+          avatar: token.avatar as string | undefined,
+          plan: token.plan as "FREE" | "PREMIUM",
+        };
       }
       return session;
     },

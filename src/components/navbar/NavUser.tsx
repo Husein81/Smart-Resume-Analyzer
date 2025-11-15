@@ -1,6 +1,6 @@
 "use client";
 import { signOut, useSession } from "next-auth/react";
-import { Button, Shad } from "../ui";
+import { Button, Separator, Shad } from "../ui";
 import { useRouter } from "next/navigation";
 import { Activity } from "react";
 import Icon from "../icon";
@@ -26,15 +26,19 @@ const NavUser = () => {
         </Shad.DropdownMenuTrigger>
         <Shad.DropdownMenuContent align="end" className="w-48">
           <Shad.DropdownMenuItem className="cursor-pointer">
+            <Icon name="User" className="w-4 h-4 mr-2" />
             Profile
           </Shad.DropdownMenuItem>
           <Shad.DropdownMenuItem className="cursor-pointer">
+            <Icon name="Settings" className="w-4 h-4 mr-2" />
             Settings
           </Shad.DropdownMenuItem>
+          <Separator />
           <Shad.DropdownMenuItem
             onClick={() => signOut()}
             className="cursor-pointer"
           >
+            <Icon name="LogOut" className="w-4 h-4 mr-2" />
             Logout
           </Shad.DropdownMenuItem>
         </Shad.DropdownMenuContent>
