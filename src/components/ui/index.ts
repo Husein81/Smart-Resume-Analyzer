@@ -64,6 +64,7 @@ export { Textarea } from "./textarea";
 export { Badge } from "./badge";
 export { Progress } from "./progress";
 export { Spinner } from "./spinner";
+export { Switch } from "./switch";
 
 export const Shad = {
   Avatar,
