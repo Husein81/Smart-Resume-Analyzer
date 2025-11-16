@@ -39,6 +39,7 @@
     "pdf-parse-new": "^1.4.1",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "react-toastify": "^11.0.5",
     "tailwind-merge": "^3.4.0",
     "tsx": "^4.20.6",
     "zod": "^4.1.12"

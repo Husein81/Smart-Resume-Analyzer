@@ -1,5 +1,6 @@
 "use client";
 
+import Empty from "@/components/Empty";
 import Icon from "@/components/icon";
 import ResumeCard from "@/components/resume/ResumeCard";
 import { Button } from "@/components/ui/button";
@@ -13,9 +14,8 @@ import {
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { useResumes } from "@/hooks/resumes";
-import { Resume } from "@/types/resume";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 export default function ResumesPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -23,31 +23,32 @@ export default function ResumesPage() {
 
   const { data, isLoading, error } = useResumes({ limit: 100 });
 
-  const resumes: Resume[] = data?.data || [];
-
   // Filter and sort resumes
-  const filteredResumes = resumes
-    .filter((resume) =>
-      resume.fileName?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "newest":
-          return (
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-        case "oldest":
-          return (
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-          );
-        case "highest-score":
-          return (b.analysis?.score || 0) - (a.analysis?.score || 0);
-        case "lowest-score":
-          return (a.analysis?.score || 0) - (b.analysis?.score || 0);
-        default:
-          return 0;
-      }
-    });
+  const filteredResumes = useMemo(() => {
+    const resumes = data?.data || [];
+    return resumes
+      .filter((resume) =>
+        resume.fileName?.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      .sort((a, b) => {
+        switch (sortBy) {
+          case "newest":
+            return (
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+          case "oldest":
+            return (
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+            );
+          case "highest-score":
+            return (b.analysis?.score || 0) - (a.analysis?.score || 0);
+          case "lowest-score":
+            return (a.analysis?.score || 0) - (b.analysis?.score || 0);
+          default:
+            return 0;
+        }
+      });
+  }, [data?.data, searchQuery, sortBy]);
 
   if (isLoading || error) {
     return (
@@ -56,6 +57,28 @@ export default function ResumesPage() {
       </div>
     );
   }
+  const stats = [
+    {
+      title: "Total Resumes",
+      icon: "FileText",
+      value: data?.data?.length,
+    },
+    {
+      title: "Analyzed",
+      icon: "CircleCheck",
+      value: data?.data?.filter((r) => r.analysis).length,
+    },
+    {
+      title: "Avg Score",
+      icon: "TrendingUp",
+      value:
+        data?.data &&
+        Math.round(
+          data?.data?.reduce((acc, r) => acc + (r.analysis?.score || 0), 0) /
+            data?.data?.length
+        ) + "%",
+    },
+  ];
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -78,52 +101,19 @@ export default function ResumesPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-6 rounded-lg border bg-card">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-lg bg-primary/10">
-                <Icon name="FileText" className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{resumes?.length}</p>
-                <p className="text-sm text-muted-foreground">Total Resumes</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-6 rounded-lg border bg-card">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-lg bg-primary/10">
-                <Icon name="CircleCheck" className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {resumes?.filter((r) => r.analysis).length}
-                </p>
-                <p className="text-sm text-muted-foreground">Analyzed</p>
+          {stats.map((stat) => (
+            <div key={stat.title} className="p-6 rounded-lg border bg-card">
+              <div className="flex items-start gap-3">
+                <div className="p-3 rounded-lg bg-primary/10">
+                  <Icon name={stat.icon} className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{stat.value}</p>
+                  <p className="text-sm text-muted-foreground">{stat.title}</p>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="p-6 rounded-lg border bg-card">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-lg bg-primary/10">
-                <Icon name="TrendingUp" className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {resumes &&
-                    Math.round(
-                      resumes.reduce(
-                        (acc, r) => acc + (r.analysis?.score || 0),
-                        0
-                      ) / resumes.length
-                    )}
-                  %
-                </p>
-                <p className="text-sm text-muted-foreground">Avg Score</p>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Filters */}
@@ -165,23 +155,16 @@ export default function ResumesPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-              <Icon name="FileX" className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">No resumes found</h3>
-            <p className="text-muted-foreground mb-4">
-              {searchQuery
+          <Empty
+            title="No resumes found"
+            icon="FileX"
+            description={
+              searchQuery
                 ? "Try adjusting your search"
-                : "Upload your first resume to get started"}
-            </p>
-            <Button asChild>
-              <Link href="/upload">
-                <Icon name="Upload" className="w-4 h-4 mr-2" />
-                Upload Resume
-              </Link>
-            </Button>
-          </div>
+                : "Upload your first resume to get started"
+            }
+            backTo="/upload"
+          />
         )}
       </div>
     </div>

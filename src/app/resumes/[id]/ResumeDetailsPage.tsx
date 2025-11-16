@@ -61,12 +61,6 @@ export default function ResumeDetailsPage({ resume }: Props) {
               </Button>
             ) : (
               <>
-                <Button variant="outline" size="lg" asChild>
-                  <Link href={`/resumes/${resume.id}/analysis`}>
-                    <Icon name="RefreshCw" className="w-5 h-5 mr-2" />
-                    Re-analyze
-                  </Link>
-                </Button>
                 <Button size="lg" asChild>
                   <Link href={`/match?resumeId=${resume.id}`}>
                     <Icon name="Target" className="w-5 h-5 mr-2" />

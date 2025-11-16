@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/lib/middleware";
 import { groq } from "@/lib/groq";
+import { Prisma } from "@prisma/client";
 
 /** POST /api/resumes/[id]/analysis
  * Analyze a specific resume
@@ -50,9 +51,10 @@ export async function POST(
     }
 
     // Optional: Get job description for better analysis
-    const body = await request.json().catch(() => ({}));
+    const body = (await request.json()) as Prisma.AnalysisCreateInput & {
+      jobDescription?: string;
+    };
     const jobDescription = body.jobDescription || "";
-
     const prompt = `You are an expert ATS (Applicant Tracking System), resume analyst, and career assessment engine.
 
         Your task is to evaluate the candidate’s resume with professional precision and return a structured JSON assessment.

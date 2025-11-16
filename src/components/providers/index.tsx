@@ -1,7 +1,9 @@
 "use client";
+
 import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ThemeProvider } from "next-themes";
+import { ToastContainer } from "react-toastify";
+import { ThemeProvider } from "./theme-provider";
 
 const Providers = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient();
@@ -15,6 +17,11 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
           disableTransitionOnChange
         >
           {children}
+          <ToastContainer
+            position="bottom-right"
+            autoClose={3000}
+            hideProgressBar
+          />
         </ThemeProvider>
       </QueryClientProvider>
     </SessionProvider>
