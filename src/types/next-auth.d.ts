@@ -1,6 +1,6 @@
 import "next-auth";
 import "next-auth/jwt";
-import { Plan } from "@/app/generated/prisma";
+import { Plan } from "../../generated/prisma";
 
 declare module "next-auth" {
   interface User {
