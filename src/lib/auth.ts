@@ -33,19 +33,39 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Missing credentials");
 
         try {
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: credentials.email,
-                password: credentials.password,
-              }),
-            }
+          // Query database directly instead of making HTTP request
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              avatar: true,
+              plan: true,
+              password: true,
+            },
+          });
+
+          if (!user) {
+            throw new Error("No user found");
+          }
+
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password,
+            user.password
           );
-          const user = await res.json();
-          return user;
+
+          if (!isPasswordValid) {
+            throw new Error("Invalid credentials");
+          }
+
+          // Return user without password
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { password: _, ...userWithoutPassword } = user;
+          return {
+            ...userWithoutPassword,
+            avatar: userWithoutPassword.avatar ?? undefined,
+          };
         } catch (error) {
           console.error("Error during authorization:", error);
           return null;
