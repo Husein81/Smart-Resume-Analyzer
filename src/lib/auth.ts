@@ -151,9 +151,25 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+  useSecureCookies: process.env.NODE_ENV === "production",
+  cookies: {
+    sessionToken: {
+      name: `${
+        process.env.NODE_ENV === "production" ? "__Secure-" : ""
+      }next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
+  debug: process.env.NODE_ENV === "development",
   session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: "/sign-in", // optional custom sign-in page
+    error: "/sign-in", // Redirect to sign-in page on error
   },
 };
