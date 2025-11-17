@@ -5,7 +5,7 @@ import Icon from "@/components/icon";
 import ScoreCircle from "@/components/resume/ScoreCircle";
 import { Badge, Button, Progress } from "@/components/ui";
 import { cn } from "@/lib/utils";
-import { MatchResult, Resume } from "@/types/resume";
+import { MatchResult, Resume } from "@/types/schemas";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Activity, useState } from "react";
@@ -151,15 +151,17 @@ export default function ResumeDetailsPage({ resume }: Props) {
                 <h3 className="text-xl font-bold">Education</h3>
               </div>
               <ul className="space-y-2">
-                {resume.analysis.education.map((edu: string, index: number) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <Icon
-                      name="CircleCheck"
-                      className="w-4 h-4 text-green-600 mt-1 shrink-0"
-                    />
-                    <span className="text-sm">{edu}</span>
-                  </li>
-                ))}
+                {resume.analysis?.education.map(
+                  (edu: string, index: number) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <Icon
+                        name="CircleCheck"
+                        className="w-4 h-4 text-green-600 mt-1 shrink-0"
+                      />
+                      <span className="text-sm">{edu}</span>
+                    </li>
+                  )
+                )}
               </ul>
             </div>
           </Activity>
