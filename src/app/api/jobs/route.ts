@@ -2,8 +2,8 @@ import { isAuthenticated } from "@/lib/middleware";
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { Prisma } from "../../../../generated/prisma";
 import { checkFeatureAccess } from "@/lib/subscription";
+import { Prisma } from "@prisma/client";
 
 // Schema for job description creation
 const JobDescriptionCreateSchema = z.object({

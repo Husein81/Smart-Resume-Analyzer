@@ -1,17 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/middleware";
-import { handleFileUpload } from "@/lib/fileHandler";
+import prisma from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
 
+import { PaginationResponse, querySchema, Resume } from "@/types/schemas";
 import { z } from "zod";
-import { PaginationResponse, Resume } from "@/types/schemas";
-
-// Query parameters schema
-export const querySchema = z.object({
-  limit: z.coerce.number().int().positive().default(10),
-  offset: z.coerce.number().int().min(0).default(0),
-});
-export type QueryParams = z.infer<typeof querySchema>;
+import { uploadCVToSupabase } from "@/lib/supabase";
+import { parseDocument } from "@/utils/parser";
 
 /**
  * POST /api/resumes
@@ -36,15 +30,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json("No file provided", { status: 400 });
     }
 
-    // Handle file upload and text extraction
-    const { fileUrl, fileName, parsedText } = await handleFileUpload(file);
+    // Validate file type
+    const validTypes = [
+      "application/pdf",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+    if (!validTypes.includes(file.type)) {
+      return NextResponse.json(
+        { error: "Invalid file type. Only PDF and DOCX are allowed" },
+        { status: 400 }
+      );
+    }
+
+    // Upload to Supabase
+    const { url: fileUrl, path: filePath } = await uploadCVToSupabase(
+      file,
+      userId
+    );
+
+    const parsedText = await parseDocument(file);
 
     // Create resume record in database
     const resume = await prisma.resume.create({
       data: {
         userId,
+        fileName: file.name,
         fileUrl,
-        fileName,
+        filePath,
+        fileSize: file.size,
         parsedText,
       },
       include: {

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { file, z } from "zod";
 
 // ==========================
 // ENUMS
@@ -28,8 +28,10 @@ export type User = z.infer<typeof UserSchema>;
 export const ResumeSchema = z.object({
   id: z.string().optional(),
   userId: z.string(),
+  fileName: z.string(),
   fileUrl: z.string().url(),
-  fileName: z.string().nullable().optional(),
+  filePath: z.string().nullable().optional(),
+  fileSize: z.number().nullable().optional(),
   parsedText: z.string().nullable().optional(),
   analysis: z.any().nullable().optional(), // linked via relation
   matchResults: z.array(z.any()).optional(),
@@ -132,6 +134,19 @@ export const AIInteractionSchema = z.object({
 
 export type AIInteraction = z.infer<typeof AIInteractionSchema>;
 
+// ==========================
+// Query parameters schema
+// =========================
+export const querySchema = z.object({
+  limit: z.coerce.number().int().positive().default(10),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
+export type QueryParams = z.infer<typeof querySchema>;
+
+// ==========================
+// PAGINATION RESPONSE
+// ==========================
 export type PaginationResponse<T> = {
   data: T[];
   pagination: {

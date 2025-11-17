@@ -1,6 +1,5 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -26,8 +25,10 @@ model User {
 model Resume {
   id           String        @id @default(auto()) @map("_id") @db.ObjectId
   userId       String        @db.ObjectId
+  fileName     String
   fileUrl      String
-  fileName     String?
+  filePath     String
+  fileSize     Int?
   parsedText   String?
   analysis     Analysis?
   matchResults MatchResult[]
@@ -35,6 +36,10 @@ model Resume {
   updatedAt    DateTime      @updatedAt
 
   user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("resumes")
 }
 
 model MatchResult {
@@ -81,7 +86,7 @@ model Analysis {
 model Subscription {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
   userId    String    @db.ObjectId
-  plan      Plan
+  plan      Plan      @default(FREE)
   status    String
   startDate DateTime  @default(now())
   endDate   DateTime?

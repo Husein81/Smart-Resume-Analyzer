@@ -5,10 +5,15 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import Icon from "../icon";
 import { Activity, useEffectEvent } from "react";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
 const NavItems = () => {
+  const { data: session } = useSession();
   const isMobile = useIsMobile();
+
   const [mounted, setMounted] = useState(false);
+
+  const user = session?.user;
 
   const items = [
     {
@@ -27,16 +32,25 @@ const NavItems = () => {
       description: "View your analytics and performance insights.",
     },
     {
-      label: "Job Matches",
-      href: "/matches",
-      description: "Find the best job matches for your resume.",
-    },
-    {
       label: "Profile",
       href: "/profile",
       description: "Manage your account settings and preferences.",
     },
   ];
+
+  const guestItems = [
+    {
+      label: "Price Plans",
+      href: "/pricing",
+      description: "Explore our pricing plans and choose the best fit for you.",
+    },
+    {
+      label: "Login to Access Dashboard",
+      href: "/sign-in",
+      description: "Sign in to view your analytics and saved resumes.",
+    },
+  ];
+
   const handleMounted = useEffectEvent(() => {
     setMounted(true);
   });
@@ -46,11 +60,13 @@ const NavItems = () => {
   }, []);
   if (!mounted) return null;
 
+  const navItems = user ? items : guestItems;
+
   return (
     <Activity mode={isMobile ? "hidden" : "visible"}>
       <Shad.NavigationMenu>
         <Shad.NavigationMenuList>
-          {items.map((item) => (
+          {navItems.map((item) => (
             <Shad.NavigationMenuItem key={item.label}>
               <Shad.NavigationMenuTrigger>
                 {item.label}

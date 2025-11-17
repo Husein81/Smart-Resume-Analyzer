@@ -63,6 +63,7 @@ export { Input } from "./input";
 export { Textarea } from "./textarea";
 export { Badge } from "./badge";
 export { Progress } from "./progress";
+export { Separator } from "./separator";
 export { Spinner } from "./spinner";
 export { Switch } from "./switch";
 

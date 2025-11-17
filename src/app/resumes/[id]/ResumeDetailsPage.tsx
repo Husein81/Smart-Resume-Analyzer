@@ -61,12 +61,6 @@ export default function ResumeDetailsPage({ resume }: Props) {
               </Button>
             ) : (
               <>
-                <Button variant="outline" size="lg" asChild>
-                  <Link href={`/resumes/${resume.id}/analysis`}>
-                    <Icon name="RefreshCw" className="w-5 h-5 mr-2" />
-                    Re-analyze
-                  </Link>
-                </Button>
                 <Button size="lg" asChild>
                   <Link href={`/match?resumeId=${resume.id}`}>
                     <Icon name="Target" className="w-5 h-5 mr-2" />
@@ -157,15 +151,17 @@ export default function ResumeDetailsPage({ resume }: Props) {
                 <h3 className="text-xl font-bold">Education</h3>
               </div>
               <ul className="space-y-2">
-                {resume.analysis.education.map((edu: string, index: number) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <Icon
-                      name="CircleCheck"
-                      className="w-4 h-4 text-green-600 mt-1 shrink-0"
-                    />
-                    <span className="text-sm">{edu}</span>
-                  </li>
-                ))}
+                {resume.analysis?.education.map(
+                  (edu: string, index: number) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <Icon
+                        name="CircleCheck"
+                        className="w-4 h-4 text-green-600 mt-1 shrink-0"
+                      />
+                      <span className="text-sm">{edu}</span>
+                    </li>
+                  )
+                )}
               </ul>
             </div>
           </Activity>

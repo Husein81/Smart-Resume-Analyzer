@@ -2,9 +2,9 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import prisma from "./prisma";
-import { Prisma } from "../../generated/prisma";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
+import { Prisma } from "@prisma/client";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -33,19 +33,39 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Missing credentials");
 
         try {
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: credentials.email,
-                password: credentials.password,
-              }),
-            }
+          // Query database directly instead of making HTTP request
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              avatar: true,
+              plan: true,
+              password: true,
+            },
+          });
+
+          if (!user) {
+            throw new Error("No user found");
+          }
+
+          const isPasswordValid = await bcrypt.compare(
+            credentials.password,
+            user.password
           );
-          const user = await res.json();
-          return user;
+
+          if (!isPasswordValid) {
+            throw new Error("Invalid credentials");
+          }
+
+          // Return user without password
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { password: _, ...userWithoutPassword } = user;
+          return {
+            ...userWithoutPassword,
+            avatar: userWithoutPassword.avatar ?? undefined,
+          };
         } catch (error) {
           console.error("Error during authorization:", error);
           return null;
@@ -131,9 +151,25 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+  useSecureCookies: process.env.NODE_ENV === "production",
+  cookies: {
+    sessionToken: {
+      name: `${
+        process.env.NODE_ENV === "production" ? "__Secure-" : ""
+      }next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
+  debug: process.env.NODE_ENV === "development",
   session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: "/sign-in", // optional custom sign-in page
+    error: "/sign-in", // Redirect to sign-in page on error
   },
 };
