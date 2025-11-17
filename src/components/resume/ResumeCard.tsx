@@ -1,19 +1,9 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Resume } from "@/types/resume";
+import { Badge, Shad, Button, Progress } from "@/components/ui";
+import { Resume } from "@/types/schemas";
 import Link from "next/link";
 import Icon from "../icon";
-import { Progress } from "@/components/ui/progress";
 import { Activity, useState } from "react";
 import { useDeleteResume } from "@/hooks/resumes";
 
@@ -46,21 +36,21 @@ export default function ResumeCard({ resume }: ResumeCardProps) {
   };
 
   return (
-    <Card className="w-full border border-border/50 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-primary/50 group">
-      <CardHeader className="space-y-3 relative">
+    <Shad.Card className="w-full border border-border/50 shadow-sm hover:shadow-lg transition-all duration-300 hover:border-primary/50 group">
+      <Shad.CardHeader className="space-y-3 relative">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className="p-2.5 rounded-lg bg-primary/10 shrink-0 group-hover:bg-primary/20 transition-colors">
               <Icon name="FileText" className="text-primary w-5 h-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-base font-semibold truncate mb-1">
+              <Shad.CardTitle className="text-base w-full sm:w-48 font-semibold truncate mb-1">
                 {fileName || "Untitled Resume"}
-              </CardTitle>
-              <CardDescription className="text-xs flex items-center gap-1.5">
+              </Shad.CardTitle>
+              <Shad.CardDescription className="text-xs flex items-center gap-1.5">
                 <Icon name="Calendar" className="w-3 h-3" />
                 {formatDate(createdAt)}
-              </CardDescription>
+              </Shad.CardDescription>
             </div>
           </div>
 
@@ -86,9 +76,9 @@ export default function ResumeCard({ resume }: ResumeCardProps) {
         <Activity mode={score !== null ? "visible" : "hidden"}>
           <Progress value={score} className={`h-1.5 bg-primary/10`} />
         </Activity>
-      </CardHeader>
+      </Shad.CardHeader>
 
-      <CardContent className="space-y-3">
+      <Shad.CardContent className="space-y-3 flex-1">
         {/* Summary or Status */}
         {summary ? (
           <p className="text-sm text-muted-foreground line-clamp-2">
@@ -144,9 +134,9 @@ export default function ResumeCard({ resume }: ResumeCardProps) {
             </div>
           </Activity>
         </div>
-      </CardContent>
+      </Shad.CardContent>
 
-      <CardFooter className="flex gap-2">
+      <Shad.CardFooter className="flex gap-2">
         <Button variant="outline" size="sm" className="flex-1" asChild>
           <Link href={`/resumes/${id}`}>
             <Icon name="Eye" className="w-4 h-4 mr-1.5" />
@@ -168,7 +158,7 @@ export default function ResumeCard({ resume }: ResumeCardProps) {
             </Link>
           </Button>
         )}
-      </CardFooter>
-    </Card>
+      </Shad.CardFooter>
+    </Shad.Card>
   );
 }

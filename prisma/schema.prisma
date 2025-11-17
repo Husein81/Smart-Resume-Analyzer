@@ -25,8 +25,10 @@ model User {
 model Resume {
   id           String        @id @default(auto()) @map("_id") @db.ObjectId
   userId       String        @db.ObjectId
+  fileName     String
   fileUrl      String
-  fileName     String?
+  filePath     String
+  fileSize     Int?
   parsedText   String?
   analysis     Analysis?
   matchResults MatchResult[]
@@ -34,6 +36,10 @@ model Resume {
   updatedAt    DateTime      @updatedAt
 
   user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("resumes")
 }
 
 model MatchResult {

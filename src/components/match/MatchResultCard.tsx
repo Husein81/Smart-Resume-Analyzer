@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Shad, Progress } from "@/components/ui";
 import Icon from "../icon";
-import { MatchResult } from "@/types/resume";
+import { MatchResult } from "@/types/schemas";
 
 type Props = {
   match: MatchResult;

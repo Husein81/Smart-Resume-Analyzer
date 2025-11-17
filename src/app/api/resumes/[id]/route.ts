@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/middleware";
-import { deleteFile } from "@/lib/fileHandler";
+import { deleteCVFromSupabase } from "@/lib/supabase";
 
 /**
  * GET /api/resumes/[id]
@@ -92,6 +92,14 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // Delete physical file
+    try {
+      await deleteCVFromSupabase(existingResume.filePath);
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      // Continue even if file deletion fails
+    }
+
     // Delete associated records first (cascade delete)
     await prisma.$transaction([
       // Delete match results
@@ -107,14 +115,6 @@ export async function DELETE(
         where: { id },
       }),
     ]);
-
-    // Delete physical file
-    try {
-      await deleteFile(existingResume.fileUrl);
-    } catch (error) {
-      console.error("Error deleting file:", error);
-      // Continue even if file deletion fails
-    }
 
     return NextResponse.json({
       success: true,

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import Icon from "../icon";
 import { useDeleteJob } from "@/hooks/matches";
 import { Activity } from "react";
-import { JobDescription } from "@/types/resume";
+import { JobDescription } from "@/types/schemas";
 import MatchResultCard from "../match/MatchResultCard";
 
 type JobCardProps = {
