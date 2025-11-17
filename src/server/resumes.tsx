@@ -1,4 +1,5 @@
 import { Resume, PaginationResponse } from "@/types/schemas";
+import { toast } from "react-toastify";
 
 export const resumesServer = {
   getResumes: async (params: {
@@ -59,7 +60,7 @@ export const resumesServer = {
         }),
       });
       if (!response.ok) {
-        throw new Error("Failed to analyze resume");
+        toast.error("Failed to analyze resume");
       }
       const data = await response.json();
       return data;

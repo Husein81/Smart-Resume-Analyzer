@@ -2,6 +2,7 @@ import { isAuthenticated } from "@/lib/middleware";
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { checkFeatureAccess } from "@/lib/subscription";
 import { Prisma } from "@prisma/client";
 import { checkFeatureAccess } from "@/lib/subscription";
 

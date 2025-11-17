@@ -1,5 +1,6 @@
 import { resumesServer } from "@/server/resumes";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
 
 export const useResumes = (params: { limit?: number }) =>
   useQuery({
@@ -32,6 +33,11 @@ export const useAnalyzeResume = () => {
       queryClient.invalidateQueries({
         queryKey: ["resume", variables.resumeId],
       });
+      queryClient.invalidateQueries({ queryKey: ["resumes"] });
+    },
+    onError: (error) => {
+      console.error("Error analyzing resume:", error);
+      toast.error("Failed to analyze resume");
     },
   });
 };

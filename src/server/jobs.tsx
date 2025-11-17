@@ -1,5 +1,4 @@
-import { JobDescription } from "@/types/schemas";
-import { PaginationResponse } from "@/types/schemas";
+import { JobDescription, PaginationResponse } from "@/types/schemas";
 
 export const jobsServer = {
   getJobs: async (params: {

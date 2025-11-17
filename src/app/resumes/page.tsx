@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { useResumes } from "@/hooks/resumes";
+import { Resume } from "@/types/schemas";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -57,6 +58,14 @@ export default function ResumesPage() {
       </div>
     );
   }
+
+  const avgScore =
+    data?.data &&
+    Math.round(
+      data?.data?.reduce((acc, r) => acc + (r.analysis?.score || 0), 0) /
+        data?.data?.length
+    );
+
   const stats = [
     {
       title: "Total Resumes",
@@ -71,12 +80,7 @@ export default function ResumesPage() {
     {
       title: "Avg Score",
       icon: "TrendingUp",
-      value:
-        data?.data &&
-        Math.round(
-          data?.data?.reduce((acc, r) => acc + (r.analysis?.score || 0), 0) /
-            data?.data?.length
-        ) + "%",
+      value: data?.data && (isNaN(Number(avgScore)) ? 0 : avgScore) + "%",
     },
   ];
 

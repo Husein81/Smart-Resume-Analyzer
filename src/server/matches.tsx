@@ -1,5 +1,4 @@
-import { MatchResult } from "@/types/schemas";
-import { PaginationResponse } from "@/types/schemas";
+import { MatchResult, PaginationResponse } from "@/types/schemas";
 
 export const matchesServer = {
   createMatch: async (data: {

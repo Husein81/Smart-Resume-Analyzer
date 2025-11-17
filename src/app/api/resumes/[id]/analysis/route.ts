@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/lib/middleware";
 import { groq } from "@/lib/groq";
+import { checkFeatureAccess, incrementUsage } from "@/lib/subscription";
 import { Prisma } from "@prisma/client";
 import { checkFeatureAccess, incrementUsage } from "@/lib/subscription";
 
@@ -74,53 +75,118 @@ export async function POST(
       jobDescription?: string;
     };
     const jobDescription = body.jobDescription || "";
-    const prompt = `You are an expert ATS (Applicant Tracking System), resume analyst, and career assessment engine.
+    const prompt = `You are an expert ATS (Applicant Tracking System) analyzer and career consultant with 15+ years of experience in resume optimization and talent assessment.
 
-        Your task is to evaluate the candidate’s resume with professional precision and return a structured JSON assessment.
+      TASK:
+      Analyze the provided resume with precision and return a structured JSON assessment. If a job description is provided, evaluate alignment; otherwise, assess the resume's overall strength independently.
 
-        Use the job description context if provided, otherwise evaluate the resume independently.
+      ${
+        jobDescription
+          ? `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      📋 JOB DESCRIPTION CONTEXT:
+      ${jobDescription}
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`
+          : "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n⚠️ NO JOB DESCRIPTION PROVIDED - General assessment mode\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      }
 
-        -------------------------
-        JOB CONTEXT (optional):
-        ${jobDescription ?? "None provided"}
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      📄 RESUME CONTENT:
+      ${resume.parsedText}
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-        -------------------------
-        RESUME CONTENT:
-        ${resume.parsedText}
+      OUTPUT REQUIREMENTS:
+      Return ONLY a valid JSON object. No markdown formatting (no \`\`\`json), no explanatory text before or after, no comments.
 
-        -------------------------
-        ANALYSIS REQUIREMENTS:
+      EXACT JSON STRUCTURE:
+      {
+        "summary": "string",
+        "skills": ["string"],
+        "experience": ["string"],
+        "education": ["string"],
+        "score": number
+      }
 
-        Return ONLY a valid JSON object (no markdown, no explanations, no text before or after) with the following exact fields:
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      FIELD GUIDELINES:
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-        {
-          "summary": "A concise 2–3 sentence professional summary describing the candidate’s overall profile",
-          "skills": ["list of extracted hard and soft skills"],
-          "experience": ["role at company (duration)", "quantified achievements if found"],
-          "education": ["degrees, institutions, certifications"],
-          "score": 0
-        }
+      1. "summary" (string):
+        • Write 2-3 sentences (50-80 words max)
+        • Capture candidate's core strengths, years of experience, and key expertise areas
+        • Professional tone, third-person perspective
+        • Example: "Experienced software engineer with 5+ years in full-stack development. Proven track record in building scalable web applications using React, Node.js, and cloud technologies. Strong problem-solver with expertise in system architecture and agile methodologies."
 
-        SCORING GUIDELINES (0–100):
-        - Resume completeness, structure, clarity (30%)
-        - Skills relevance, strength, and depth (25%)
-        - Experience quality, impact, metrics, achievements (25%)
-        - Education and certifications relevance/strength (10%)
-        - ATS compatibility (formatting, scannability, keyword match) (10%)
+      2. "skills" (array of strings):
+        • Extract ALL technical and soft skills mentioned or strongly implied
+        • Include: programming languages, frameworks, tools, certifications, methodologies, soft skills
+        • Categorize clearly: "JavaScript", "React.js", "Leadership", "Project Management"
+        • Remove duplicates and generic terms like "problem solving" unless specifically emphasized
+        • Aim for 10-25 skills depending on resume depth
+        • Use "N/A" if genuinely no skills can be extracted
 
-        INTERPRET SCORE STRICTLY:
-        - 0–59 = Poor
-        - 60–69 = Average
-        - 70–79 = Good
-        - 80–89 = Excellent
-        - 90–100 = Exceptional
+      3. "experience" (array of strings):
+        • Format: "Job Title at Company Name (Duration)" on first line, followed by bullet points of key achievements
+        • Include quantifiable metrics where available (e.g., "Increased sales by 30%")
+        • Focus on impact, not just responsibilities
+        • Example: "Senior Developer at Tech Corp (Jan 2020 - Present) • Led team of 5 engineers • Reduced API response time by 40%"
+        • If no specific dates, estimate based on context (e.g., "2+ years experience mentioned")
+        • Use "N/A" if no work experience found
 
-        IMPORTANT RULES:
-        - Do NOT add fields not listed.
-        - Do NOT output anything except valid JSON.
-        - Fill missing information realistically but avoid inventing achievements or details not supported by the resume.
-        - If information is missing in the resume, include "N/A" in the relevant fields (not empty).
-        `;
+      4. "education" (array of strings):
+        • Format: "Degree, Major - Institution, Year"
+        • Include certifications and relevant training
+        • Examples: "Bachelor of Science, Computer Science - MIT, 2018", "AWS Certified Solutions Architect, 2022"
+        • Use "N/A" if no education information found
+
+      5. "score" (integer 0-100):
+        Evaluate holistically using these weighted criteria:
+
+        A. CONTENT QUALITY (40 points)
+            • Clarity and organization (10 pts)
+            • Quantifiable achievements and impact (15 pts)
+            • Relevance to ${
+              jobDescription ? "target job" : "career level"
+            } (15 pts)
+
+        B. SKILLS & EXPERTISE (25 points)
+            • Technical/hard skills depth and relevance (15 pts)
+            • Soft skills and leadership indicators (10 pts)
+
+        C. EXPERIENCE STRENGTH (20 points)
+            • Years of relevant experience (10 pts)
+            • Career progression and growth (10 pts)
+
+        D. CREDENTIALS (10 points)
+            • Education level and reputation (5 pts)
+            • Certifications and continuous learning (5 pts)
+
+        E. ATS COMPATIBILITY (5 points)
+            • Keyword optimization (3 pts)
+            • Format scannability (2 pts)
+
+        SCORE INTERPRETATION (be strict and realistic):
+        • 90-100: Exceptional - Top 5% candidate, highly competitive
+        • 80-89: Excellent - Strong profile, ready for senior positions
+        • 70-79: Good - Solid experience, competitive for mid-level roles
+        • 60-69: Average - Adequate but needs improvement for competitive edge
+        • 50-59: Below Average - Significant gaps or lack of detail
+        • 0-49: Poor - Major deficiencies, requires substantial revision
+
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      CRITICAL RULES:
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      ✓ Output MUST be valid, parseable JSON only
+      ✓ Use "N/A" for missing data, never leave arrays empty
+      ✓ Be objective and realistic - do not inflate scores
+      ✓ Base assessment ONLY on information provided in the resume
+      ✓ Do not invent achievements, skills, or credentials not present
+      ✓ Score strictly according to guidelines - most resumes score 60-80
+      ✗ NO markdown code blocks (\`\`\`json)
+      ✗ NO explanatory text before or after JSON
+      ✗ NO additional fields beyond the 5 specified
+      ✗ NO comments inside JSON
+
+      BEGIN ANALYSIS NOW:`;
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
