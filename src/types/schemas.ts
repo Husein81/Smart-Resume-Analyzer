@@ -1,4 +1,4 @@
-import { file, z } from "zod";
+import { z } from "zod";
 
 // ==========================
 // ENUMS
@@ -110,7 +110,7 @@ export type MatchResult = z.infer<typeof MatchResultSchema>;
 export const SubscriptionSchema = z.object({
   id: z.string().optional(),
   userId: z.string(),
-  plan: z.string(), // could also use PlanEnum
+  plan: PlanEnum,
   status: z.string(),
   startDate: z.date().optional(),
   endDate: z.date().nullable().optional(),
