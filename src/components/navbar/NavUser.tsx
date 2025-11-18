@@ -34,6 +34,11 @@ const NavUser = () => {
   if (!user)
     return <Button onClick={() => router.push("/sign-in")}>Login</Button>;
 
+  const handleLogout = async () => {
+    await signOut();
+    router.push("/");
+  };
+
   return (
     <div className="flex items-center gap-4">
       <ModeToggle />
@@ -57,6 +62,13 @@ const NavUser = () => {
               </span>
             </div>
           </Shad.DropdownMenuItem>
+          <Shad.DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => router.push("/subscription")}
+          >
+            <Icon name="CreditCard" className="w-4 h-4 mr-2" />
+            Subscription
+          </Shad.DropdownMenuItem>
 
           <Activity mode={isMobile ? "visible" : "hidden"}>
             <Separator />
@@ -75,10 +87,7 @@ const NavUser = () => {
           <Separator />
 
           <Shad.DropdownMenuItem
-            onClick={() => {
-              signOut();
-              router.push("/");
-            }}
+            onClick={handleLogout}
             className="cursor-pointer"
           >
             <Icon name="LogOut" className="w-4 h-4 mr-2" />

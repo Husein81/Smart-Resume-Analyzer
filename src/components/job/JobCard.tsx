@@ -8,6 +8,8 @@ import { useDeleteJob } from "@/hooks/matches";
 import { Activity } from "react";
 import { JobDescription } from "@/types/schemas";
 import MatchResultCard from "../match/MatchResultCard";
+import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 type JobCardProps = {
   job: JobDescription;
@@ -22,7 +24,11 @@ export default function JobCard({
   isLoading = false,
   isSelected = false,
 }: JobCardProps) {
+  const { data: session } = useSession();
   const { id, title, description, skills, createdAt } = job;
+  const searchParams = useSearchParams();
+
+  const resumeId = searchParams.get("resumeId");
 
   const deleteJob = useDeleteJob();
 
@@ -35,9 +41,12 @@ export default function JobCard({
   };
 
   const handleDelete = async (id: string) => await deleteJob.mutateAsync(id);
-  console.log(job.matchResults);
+
   const match =
-    job.matchResults && job.matchResults.find((m) => id === m.jobDescriptionId);
+    job.matchResults &&
+    job.matchResults.find(
+      (m) => id === m.jobDescriptionId && resumeId === m.resumeId
+    );
 
   return (
     <Shad.Card
@@ -70,12 +79,16 @@ export default function JobCard({
               {formatDate(createdAt ?? new Date())}
             </Shad.CardDescription>
           </div>
-          <Button variant={"outline"} onClick={() => handleDelete(id ?? "")}>
-            <Icon
-              name="Trash2"
-              className="text-destructive hover:text-destructive/90"
-            />
-          </Button>
+          <Activity
+            mode={session?.user.plan === "PREMIUM" ? "visible" : "hidden"}
+          >
+            <Button variant={"outline"} onClick={() => handleDelete(id ?? "")}>
+              <Icon
+                name="Trash2"
+                className="text-destructive hover:text-destructive/90"
+              />
+            </Button>
+          </Activity>
         </div>
       </Shad.CardHeader>
 
@@ -112,14 +125,32 @@ export default function JobCard({
         </div>
       </Shad.CardContent>
 
-      <Shad.CardFooter>
-        <Activity
-          mode={
-            job.matchResults && job.matchResults.length > 0
-              ? "hidden"
-              : "visible"
-          }
-        >
+      <Shad.CardFooter className="flex gap-2">
+        <Activity mode={match ? "visible" : "hidden"}>
+          <div className="flex flex-col gap-2 w-full">
+            <Shad.Dialog>
+              <Shad.DialogTrigger asChild>
+                <Button variant="outline" className="w-full">
+                  <Icon name="Eye" className="size-5" />
+                  View Results
+                </Button>
+              </Shad.DialogTrigger>
+              <Shad.DialogContent className="w-full max-w-2xl">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <Shad.DialogTitle>
+                      <span className="text-2xl font-bold">Match Results</span>
+                    </Shad.DialogTitle>
+                  </div>
+                  <div className="h-164 overflow-y-auto">
+                    {match && <MatchResultCard match={match} />}
+                  </div>
+                </div>
+              </Shad.DialogContent>
+            </Shad.Dialog>
+          </div>
+        </Activity>
+        <Activity mode={match ? "hidden" : "visible"}>
           <Button
             onClick={() => onSelect(id ?? "")}
             disabled={isLoading}
@@ -143,44 +174,6 @@ export default function JobCard({
               </>
             )}
           </Button>
-        </Activity>
-        <Activity
-          mode={
-            job.matchResults && job.matchResults.length > 0
-              ? "visible"
-              : "hidden"
-          }
-        >
-          <div className="flex flex-col gap-2 w-full">
-            <div className="text-center w-full text-sm font-medium bg-linear-to-r from-violet to-pink bg-clip-text text-transparent">
-              <Icon name="Award" className="w-6 h-6 mx-auto mb-1 text-violet" />
-              Match Score: {match?.matchScore}%
-            </div>
-            <Shad.Dialog>
-              <Shad.DialogTrigger asChild>
-                <Button>
-                  <Icon name="Eye" className="size-5" />
-                  View Result
-                </Button>
-              </Shad.DialogTrigger>
-              <Shad.DialogContent className="w-full max-w-2xl">
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <Shad.DialogTitle>
-                      <span className="text-2xl font-bold">Match Results</span>
-                    </Shad.DialogTitle>
-                    <Button variant="outline" size={"sm"} className="mr-4">
-                      <Icon name="RefreshCw" className="w-4 h-4 mr-2" />
-                      Match Another Job
-                    </Button>
-                  </div>
-                  <div className="h-164 overflow-y-auto">
-                    {match && <MatchResultCard match={match} />}
-                  </div>
-                </div>
-              </Shad.DialogContent>
-            </Shad.Dialog>
-          </div>
         </Activity>
       </Shad.CardFooter>
     </Shad.Card>

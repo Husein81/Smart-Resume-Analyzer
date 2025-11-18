@@ -3,7 +3,11 @@ import { matchesServer } from "@/server/matches";
 import type { JobDescription } from "@/types/schemas";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export const useJobs = (params: { limit?: number; offset?: number }) =>
+export const useJobs = (params: {
+  resumeId: string;
+  limit?: number;
+  offset?: number;
+}) =>
   useQuery({
     queryKey: ["jobs", params],
     queryFn: () => jobsServer.getJobs(params),
@@ -46,6 +50,9 @@ export const useCreateMatch = () => {
       queryClient.invalidateQueries({ queryKey: ["matches"] });
       queryClient.invalidateQueries({
         queryKey: ["matches", { resumeId: variables.resumeId }],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["jobs"],
       });
       queryClient.invalidateQueries({
         queryKey: ["resume", variables.resumeId],

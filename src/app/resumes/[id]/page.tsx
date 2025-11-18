@@ -22,12 +22,7 @@ const getResumeById = async (id: string) => {
     );
 
     if (!response.ok) {
-      console.error(
-        "Failed to fetch resume:",
-        response.status,
-        response.statusText
-      );
-      return null;
+      throw new Error("Failed to fetch resume");
     }
 
     return await response.json();

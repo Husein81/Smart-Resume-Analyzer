@@ -212,42 +212,167 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const prompt = `You are an expert job matching system. Compare the resume with the job description and provide a detailed matching analysis.
+    const prompt = `You are an elite ATS (Applicant Tracking System) and talent acquisition expert with deep expertise in job-candidate matching and resume optimization.
+    
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        📄 CANDIDATE RESUME:
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        ${resume.parsedText}
 
-      Resume:
-      ${resume.parsedText}
+        ${
+          resume.analysis
+            ? `
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        📊 EXISTING RESUME ANALYSIS:
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        • Overall Resume Quality Score: ${resume.analysis.score}/100
+        • Identified Skills: ${resume.analysis.skills.join(", ")}
+        • Professional Summary: ${resume.analysis.summary}
+        • Experience Highlights: ${resume.analysis.experience
+          .slice(0, 3)
+          .join(" | ")}
+        • Education Background: ${resume.analysis.education.join(" | ")}
+        `
+            : ""
+        }
 
-      ${
-        resume.analysis
-          ? `\nResume Analysis:
-      - Score: ${resume.analysis.score}/100
-      - Skills: ${resume.analysis.skills.join(", ")}
-      - Summary: ${resume.analysis.summary}
-      `
-          : ""
-      }
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        💼 TARGET JOB POSITION:
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        Position Title: ${job.title}
 
-      Job Description:
-      Title: ${job.title}
-      Description: ${job.description}
-      Required Skills: ${job.skills.join(", ")}
+        Job Description:
+        ${job.description}
 
-      Return ONLY a valid JSON object (no markdown, no code blocks) with these exact fields:
-      {
-        "matchScore": 75,
-        "missingSkills": ["skill1", "skill2"],
-        "suggestedEdits": [
-          "Add more details about X experience",
-          "Highlight Y achievement more prominently"
-        ],
-        "aiSummary": "A detailed summary of how well the resume matches the job, what strengths they have, and what gaps exist."
-      }
+        Required Skills & Qualifications:
+        ${job.skills.map((skill, i) => `${i + 1}. ${skill}`).join("\n")}
 
-      matchScore should be 0-100 based on:
-      - Skills overlap (40%)
-      - Experience relevance (30%)
-      - Education requirements (15%)
-      - Overall fit (15%)`;
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        🎯 YOUR TASK:
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        Perform a comprehensive job-resume compatibility analysis and return ONLY a valid JSON object (no markdown, no code blocks, no explanations).
+
+        EXACT OUTPUT FORMAT:
+        {
+          "matchScore": 0,
+          "missingSkills": [],
+          "suggestedEdits": [],
+          "aiSummary": ""
+        }
+
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        📋 FIELD SPECIFICATIONS:
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        1️⃣ "matchScore" (integer 0-100):
+          Calculate using this weighted formula:
+
+          A. SKILLS ALIGNMENT (40 points)
+              • Hard skills match: Count exact or synonymous skills (25 pts)
+              • Soft skills alignment: Leadership, communication, etc. (10 pts)
+              • Tool/technology proficiency overlap (5 pts)
+
+          B. EXPERIENCE RELEVANCE (30 points)
+              • Years of experience vs. requirements (10 pts)
+              • Industry/domain match (8 pts)
+              • Role responsibilities alignment (7 pts)
+              • Achievement quantification (5 pts)
+
+          C. EDUCATION & CREDENTIALS (15 points)
+              • Degree level match (8 pts)
+              • Field of study relevance (4 pts)
+              • Certifications & licenses (3 pts)
+
+          D. OVERALL FIT (15 points)
+              • Career progression trajectory (5 pts)
+              • Cultural/role fit indicators (5 pts)
+              • Resume quality & presentation (5 pts)
+
+          SCORE INTERPRETATION (be realistic):
+          • 90-100: Exceptional match - Top 5% candidate, nearly perfect fit
+          • 80-89: Excellent match - Strong candidate, highly qualified
+          • 70-79: Good match - Meets most requirements, competitive candidate
+          • 60-69: Moderate match - Meets basic requirements, has potential
+          • 50-59: Weak match - Significant gaps, requires training
+          • 0-49: Poor match - Not qualified for this position
+
+        2️⃣ "missingSkills" (array of strings):
+          List ALL critical skills from the job requirements that are NOT found in the resume.
+          • Include both hard and soft skills
+          • Use exact terminology from job description
+          • Prioritize by importance (most critical first)
+          • If all skills are present, return empty array []
+          • Maximum 10 skills
+
+          Example: ["AWS Cloud Architecture", "Kubernetes", "Team Leadership", "Agile/Scrum"]
+
+        3️⃣ "suggestedEdits" (array of strings):
+          Provide 5-8 specific, actionable recommendations to improve resume-job fit:
+          • Focus on high-impact changes first
+          • Be specific with section names and content suggestions
+          • Include keyword optimization tips
+          • Suggest quantifiable achievements to add
+          • Recommend reframing existing experience
+          • Highlight what to emphasize or de-emphasize
+
+          Format: Use imperative sentences, be concrete and actionable.
+          
+          Example: [
+            "Add quantifiable metrics to your project management experience (e.g., 'Led team of X, delivered Y projects worth $Z')",
+            "Expand the 'Technical Skills' section to prominently feature AWS, Docker, and CI/CD tools mentioned in job description",
+            "Reframe your 'Software Developer' role to emphasize backend architecture and scalability achievements",
+            "Include specific examples of cross-functional collaboration in the summary section",
+            "Add certifications section highlighting AWS Solutions Architect and Kubernetes Administrator credentials",
+            "Move your leadership experience higher in the resume to match the 'Team Lead' focus of this role"
+          ]
+
+        4️⃣ "aiSummary" (string, 150-250 words):
+          Write a professional, comprehensive assessment covering:
+          
+          STRUCTURE (4 paragraphs):
+          
+          Paragraph 1 - OVERALL FIT (2-3 sentences):
+          • Overall match quality and candidate suitability
+          • Key strengths that make them a good fit
+          
+          Paragraph 2 - STRENGTHS & HIGHLIGHTS (3-4 sentences):
+          • Specific skills, experiences, or achievements that align well
+          • What makes this candidate stand out
+          • Relevant accomplishments or credentials
+          
+          Paragraph 3 - GAPS & CONCERNS (2-3 sentences):
+          • Critical missing skills or qualifications
+          • Experience gaps or weaknesses
+          • Areas that may require additional training or support
+          
+          Paragraph 4 - RECOMMENDATION (2-3 sentences):
+          • Interview decision recommendation (Strong Yes / Yes / Maybe / No)
+          • Specific areas to probe during interview
+          • Final thoughts on candidate potential
+          
+          TONE: Professional, objective, balanced (not overly positive or negative)
+          FORMAT: Clear prose, no bullet points in aiSummary
+
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        ⚠️ CRITICAL RULES:
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        ✓ Output MUST be valid, parseable JSON only
+        ✓ NO markdown code blocks (\`\`\`json or \`\`\`)
+        ✓ NO explanatory text before or after JSON
+        ✓ NO additional fields beyond the 4 specified
+        ✓ Be objective and realistic with scoring - most candidates score 60-80
+        ✓ Base assessment ONLY on provided information
+        ✓ Use exact skill names from job description in missingSkills
+        ✓ Ensure suggestedEdits are specific and actionable
+        ✓ aiSummary must be well-structured prose (not bullets)
+        ✗ Do NOT inflate scores to be encouraging
+        ✗ Do NOT invent qualifications not in resume
+        ✗ Do NOT include comments in JSON
+        ✗ Do NOT output anything except the JSON object
+
+        BEGIN ANALYSIS NOW:`;
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",

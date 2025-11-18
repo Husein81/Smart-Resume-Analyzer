@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { useResumes } from "@/hooks/resumes";
-import { Resume } from "@/types/schemas";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 

@@ -4,7 +4,6 @@ import { isAuthenticated } from "@/lib/middleware";
 import { groq } from "@/lib/groq";
 import { checkFeatureAccess, incrementUsage } from "@/lib/subscription";
 import { Prisma } from "@prisma/client";
-import { checkFeatureAccess, incrementUsage } from "@/lib/subscription";
 
 /** POST /api/resumes/[id]/analysis
  * Analyze a specific resume

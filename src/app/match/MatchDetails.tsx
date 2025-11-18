@@ -4,9 +4,11 @@ import Empty from "@/components/Empty";
 import Icon from "@/components/icon";
 import JobCard from "@/components/job/JobCard";
 import JobForm from "@/components/job/JobForm";
+import UpgradeModal from "@/components/subscription/UpgradeModal";
 import { Badge, Button, Shad, Spinner } from "@/components/ui";
 import { useCreateMatch, useJobs } from "@/hooks/matches";
 import { useResumeById } from "@/hooks/resumes";
+import { useGetUsage } from "@/hooks/subscriptions";
 import { cn } from "@/lib/utils";
 import { getScoreColor } from "@/utils";
 import Link from "next/link";
@@ -16,16 +18,33 @@ import { useState } from "react";
 export default function MatchDetails({ resumeId }: { resumeId?: string }) {
   const router = useRouter();
 
+  const [open, setOpen] = useState(false);
   const [showJobForm, setShowJobForm] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
+  const { data: usage } = useGetUsage();
   const { data: resume, isLoading: resumeLoading } = useResumeById(
     resumeId || ""
   );
-  const { data: jobsData, isLoading: jobsLoading } = useJobs({ limit: 20 });
+  const { data: jobsData, isLoading: jobsLoading } = useJobs({
+    resumeId: resumeId ?? "",
+    limit: 20,
+  });
   const createMatch = useCreateMatch();
 
+  const canAccessNewJob =
+    usage &&
+    usage.limits.jobDescriptions.used < usage.limits.jobDescriptions.limit;
+
+  const canAccessMatching =
+    usage &&
+    usage.limits.matchesPerMonth.used < usage.limits.matchesPerMonth.limit;
+
   const handleSelectJob = async (jobId: string) => {
+    if (!canAccessMatching) {
+      setOpen(true);
+      return;
+    }
     if (!resumeId) return;
 
     setSelectedJobId(jobId);
@@ -245,7 +264,13 @@ export default function MatchDetails({ resumeId }: { resumeId?: string }) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setShowJobForm(true)}
+                    onClick={() => {
+                      if (!canAccessNewJob) {
+                        setOpen(true);
+                        return;
+                      }
+                      setShowJobForm(true);
+                    }}
                   >
                     <Icon name="Plus" className="w-4 h-4 mr-2" />
                     New Job
@@ -285,6 +310,8 @@ export default function MatchDetails({ resumeId }: { resumeId?: string }) {
           </div>
         </Shad.DialogContent>
       </Shad.Dialog>
+
+      <UpgradeModal open={open} onClose={() => setOpen(false)} />
     </div>
   );
 }

@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { checkFeatureAccess } from "@/lib/subscription";
 import { Prisma } from "@prisma/client";
-import { checkFeatureAccess } from "@/lib/subscription";
 
 // Schema for job description creation
 const JobDescriptionCreateSchema = z.object({
@@ -107,7 +106,8 @@ export async function GET(req: NextRequest) {
       limit: searchParams.get("limit"),
       offset: searchParams.get("offset"),
     });
-
+    const resumeId = searchParams.get("resumeId") as string;
+    console.log("Resume ID:", resumeId);
     // Fetch jobs with match results count
     const [jobs, total] = await Promise.all([
       prisma.jobDescription.findMany({
