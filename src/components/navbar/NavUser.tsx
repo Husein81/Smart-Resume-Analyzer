@@ -35,8 +35,7 @@ const NavUser = () => {
     return <Button onClick={() => router.push("/sign-in")}>Login</Button>;
 
   const handleLogout = async () => {
-    await signOut();
-    router.push("/");
+    await signOut({ callbackUrl: "/" });
   };
 
   return (

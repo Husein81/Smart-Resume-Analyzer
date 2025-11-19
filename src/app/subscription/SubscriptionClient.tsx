@@ -50,6 +50,14 @@ export default function SubscriptionClient({ success }: { success?: boolean }) {
     },
   ];
 
+  const handleManageBilling = async () => {
+    try {
+      // TODO: Implement manage billing functionality
+    } catch (error) {
+      console.error("Error managing billing:", error);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-12">
       {/* Success Message */}
@@ -111,7 +119,7 @@ export default function SubscriptionClient({ success }: { success?: boolean }) {
               <div className="flex gap-2">
                 {session.user.plan === "PREMIUM" ? (
                   <Button
-                    onClick={() => {}}
+                    onClick={handleManageBilling}
                     variant="outline"
                     disabled={managingBilling}
                   >
