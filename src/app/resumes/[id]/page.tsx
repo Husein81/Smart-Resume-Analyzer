@@ -1,31 +1,45 @@
 import ResumesDetailsPage from "./ResumeDetailsPage";
-import { cookies } from "next/headers";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { redirect } from "next/navigation";
+import { Resume } from "@/types/schemas";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL!;
-
-const getResumeById = async (id: string) => {
+const getResumeById = async (id: string, userId: string): Promise<Resume> => {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("next-auth.session-token");
-
-    const response = await fetch(`${API_URL}/resumes/${id}`, {
-      headers: {
-        "Content-Type": "application/json",
-        Cookie: sessionCookie
-          ? `next-auth.session-token=${sessionCookie.value}`
-          : "",
+    const resume = await prisma.resume.findUnique({
+      where: { id },
+      include: {
+        analysis: true,
+        matchResults: {
+          include: {
+            jobDescription: true,
+          },
+          orderBy: { createdAt: "desc" },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
-      cache: "no-store",
     });
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch resume");
+    if (!resume) {
+      throw new Error("Resume not found");
     }
 
-    return await response.json();
+    // Check ownership
+    if (resume.userId !== userId) {
+      throw new Error("Unauthorized access");
+    }
+
+    return resume;
   } catch (error) {
     console.error("Error fetching resume:", error);
-    return null;
+    throw error;
   }
 };
 
@@ -34,8 +48,14 @@ export default async function Page({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    redirect("/sign-in");
+  }
+
   const { id } = await params;
-  const resume = await getResumeById(id);
+  const resume = await getResumeById(id, session.user.id);
 
   return <ResumesDetailsPage resume={resume} />;
 }
