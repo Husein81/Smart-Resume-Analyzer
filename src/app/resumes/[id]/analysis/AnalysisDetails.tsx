@@ -1,10 +1,12 @@
 "use client";
 
 import Icon from "@/components/icon";
+import UpgradeModal from "@/components/subscription/UpgradeModal";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { useAnalyzeResume, useResumeById } from "@/hooks/resumes";
+import { useGetUsage } from "@/hooks/subscriptions";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -14,8 +16,11 @@ export default function AnalysisDetails({ resumeId }: { resumeId: string }) {
 
   const [jobDescription, setJobDescription] = useState("");
   const [progress, setProgress] = useState(0);
+  const [open, setOpen] = useState(false);
 
+  const { data: usage } = useGetUsage();
   const { data: resume, isLoading } = useResumeById(resumeId);
+
   const analyzeResume = useAnalyzeResume();
 
   if (isLoading) {
@@ -54,7 +59,15 @@ export default function AnalysisDetails({ resumeId }: { resumeId: string }) {
     );
   }
 
+  const canAccess =
+    Number(usage?.limits.analysisPerMonth.used) <
+    Number(usage?.limits.analysisPerMonth.limit);
+
   const handleAnalyze = async () => {
+    if (!canAccess) {
+      setOpen(true);
+      return;
+    }
     setProgress(0);
     try {
       // Simulate progress
@@ -281,6 +294,7 @@ export default function AnalysisDetails({ resumeId }: { resumeId: string }) {
           </div>
         )}
       </div>
+      <UpgradeModal open={open} feature="" onClose={() => setOpen(false)} />
     </div>
   );
 }

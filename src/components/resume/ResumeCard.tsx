@@ -6,12 +6,14 @@ import Link from "next/link";
 import Icon from "../icon";
 import { Activity, useState } from "react";
 import { useDeleteResume } from "@/hooks/resumes";
+import { useSession } from "next-auth/react";
 
 type ResumeCardProps = {
   resume: Resume;
 };
 
 export default function ResumeCard({ resume }: ResumeCardProps) {
+  const { data: session } = useSession();
   const { id, fileName, analysis, matchResults, createdAt } = resume;
   const [showMore, setShowMore] = useState(false);
 
@@ -64,13 +66,17 @@ export default function ResumeCard({ resume }: ResumeCardProps) {
               <div className="text-xs text-muted-foreground">Score</div>
             </div>
           </Activity>
-          <Button
-            variant="outline"
-            onClick={() => handleDelete(id ?? "")}
-            className="size-8 p-0.5 rounded-lg"
+          <Activity
+            mode={session?.user.plan === "PREMIUM" ? "visible" : "hidden"}
           >
-            <Icon name="Trash" className="w-4 h-4 text-destructive" />
-          </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleDelete(id ?? "")}
+              className="size-8 p-0.5 rounded-lg"
+            >
+              <Icon name="Trash" className="w-4 h-4 text-destructive" />
+            </Button>
+          </Activity>
         </div>
 
         <Activity mode={score !== null ? "visible" : "hidden"}>

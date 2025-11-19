@@ -114,7 +114,7 @@ export default function JobForm({ onCancel }: JobFormProps) {
                 className="size-4 absolute top-1/2 mt-1 right-2"
               />
             </div>
-            <div className="flex  gap-2 items-center">
+            <div className="flex flex-wrap gap-2 items-center">
               {skills?.map((skill: string, index: number) => (
                 <div
                   key={index}

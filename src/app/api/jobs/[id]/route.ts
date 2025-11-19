@@ -156,6 +156,13 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (authSession.user.plan !== "PREMIUM") {
+      return NextResponse.json(
+        { error: "Premium plan required" },
+        { status: 403 }
+      );
+    }
+
     const { id } = await params;
 
     // Check if job exists and belongs to user

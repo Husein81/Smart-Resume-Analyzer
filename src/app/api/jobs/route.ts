@@ -2,6 +2,7 @@ import { isAuthenticated } from "@/lib/middleware";
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { checkFeatureAccess } from "@/lib/subscription";
 import { Prisma } from "@prisma/client";
 
 // Schema for job description creation
@@ -28,6 +29,23 @@ export async function POST(req: NextRequest) {
     const authSession = await isAuthenticated();
     if (!authSession) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check usage limits
+    const { canAccess, limit } = await checkFeatureAccess(
+      authSession.user.id,
+      "jobDescriptions"
+    );
+
+    if (!canAccess) {
+      return NextResponse.json(
+        {
+          error: "Job description limit reached",
+          message: `You've reached your job description limit (${limit}). Upgrade to Premium for unlimited job descriptions.`,
+          remaining: 0,
+        },
+        { status: 403 }
+      );
     }
 
     const body: Prisma.JobDescriptionCreateInput = await req.json();
@@ -88,7 +106,8 @@ export async function GET(req: NextRequest) {
       limit: searchParams.get("limit"),
       offset: searchParams.get("offset"),
     });
-
+    const resumeId = searchParams.get("resumeId") as string;
+    console.log("Resume ID:", resumeId);
     // Fetch jobs with match results count
     const [jobs, total] = await Promise.all([
       prisma.jobDescription.findMany({

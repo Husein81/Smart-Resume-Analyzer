@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/lib/middleware";
 import { groq } from "@/lib/groq";
+import { checkFeatureAccess, incrementUsage } from "@/lib/subscription";
 import { Prisma } from "@prisma/client";
 
 /** POST /api/resumes/[id]/analysis
@@ -19,6 +20,24 @@ export async function POST(
     }
 
     const { id } = await params;
+
+    // Check usage limits
+    const { canAccess } = await checkFeatureAccess(
+      authSession.user.id,
+      "analysisPerMonth"
+    );
+
+    if (!canAccess) {
+      return NextResponse.json(
+        {
+          error: "Analysis limit reached",
+          message:
+            "You've reached your monthly analysis limit. Upgrade to Premium for unlimited access.",
+          remaining: 0,
+        },
+        { status: 403 }
+      );
+    }
 
     // Check if resume exists and belongs to user
     const resume = await prisma.resume.findFirst({
@@ -222,6 +241,16 @@ export async function POST(
         },
       },
     });
+
+    // Log AI usage
+    await incrementUsage(
+      authSession.user.id,
+      "analysis",
+      `analyze resume: ${resume.fileName}`,
+      JSON.stringify(analysisData),
+      "llama-3.3-70b-versatile",
+      completion.usage?.total_tokens
+    );
 
     return NextResponse.json(
       {

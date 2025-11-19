@@ -94,6 +94,19 @@ export async function GET(request: NextRequest) {
 
     const userId = authSession.user.id;
 
+    // Validate userId is a proper MongoDB ObjectId (24 hex characters)
+    if (
+      !userId ||
+      typeof userId !== "string" ||
+      !/^[a-f\d]{24}$/i.test(userId)
+    ) {
+      console.error("Invalid userId format:", userId);
+      return NextResponse.json(
+        { error: "Invalid user session. Please sign out and sign back in." },
+        { status: 401 }
+      );
+    }
+
     // Get and validate query parameters
     const { searchParams } = new URL(request.url);
     const queryParams = querySchema.parse({

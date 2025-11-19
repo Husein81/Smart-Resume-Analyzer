@@ -1,4 +1,4 @@
-import { file, z } from "zod";
+import { z } from "zod";
 
 // ==========================
 // ENUMS
@@ -110,7 +110,7 @@ export type MatchResult = z.infer<typeof MatchResultSchema>;
 export const SubscriptionSchema = z.object({
   id: z.string().optional(),
   userId: z.string(),
-  plan: z.string(), // could also use PlanEnum
+  plan: PlanEnum,
   status: z.string(),
   startDate: z.date().optional(),
   endDate: z.date().nullable().optional(),
@@ -156,3 +156,31 @@ export type PaginationResponse<T> = {
     hasMore: boolean;
   };
 };
+
+export const limitSchema = z.object({
+  resumes: z.object({
+    used: z.number().or(z.string()),
+    limit: z.number().or(z.string()),
+  }),
+  analysisPerMonth: z.object({
+    used: z.number().or(z.string()),
+    limit: z.number().or(z.string()),
+  }),
+  matchesPerMonth: z.object({
+    used: z.number().or(z.string()),
+    limit: z.number().or(z.string()),
+  }),
+  jobDescriptions: z.object({
+    used: z.number().or(z.string()),
+    limit: z.number().or(z.string()),
+  }),
+});
+
+export type Limit = z.infer<typeof limitSchema>;
+
+export const usageLimits = z.object({
+  plan: PlanEnum,
+  limits: limitSchema,
+});
+
+export type UsageLimits = z.infer<typeof usageLimits>;

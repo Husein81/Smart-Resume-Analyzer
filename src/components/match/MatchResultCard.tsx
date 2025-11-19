@@ -83,7 +83,7 @@ export default function MatchResultCard({ match }: Props) {
         <Shad.Card>
           <Shad.CardHeader>
             <Shad.CardTitle className="text-base flex items-center gap-2">
-              <Icon name="AlertCircle" className="w-5 h-5 text-yellow-600" />
+              <Icon name="CircleAlert" className="w-5 h-5 text-yellow-600" />
               Missing Skills
             </Shad.CardTitle>
             <Shad.CardDescription>
