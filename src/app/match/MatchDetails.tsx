@@ -19,6 +19,7 @@ export default function MatchDetails({ resumeId }: { resumeId?: string }) {
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
+  const [showMore, setShowMore] = useState(false);
   const [showJobForm, setShowJobForm] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
@@ -136,6 +137,10 @@ export default function MatchDetails({ resumeId }: { resumeId?: string }) {
     );
   }
 
+  const skills = showMore
+    ? resume.analysis.skills
+    : resume.analysis.skills.slice(0, 6);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -186,20 +191,20 @@ export default function MatchDetails({ resumeId }: { resumeId?: string }) {
               </p>
               {resume.analysis?.skills && resume.analysis.skills.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
-                  {resume.analysis.skills
-                    .slice(0, 6)
-                    .map((skill: string, index: number) => (
-                      <Badge
-                        key={index}
-                        variant="secondary"
-                        className="text-xs"
-                      >
-                        {skill}
-                      </Badge>
-                    ))}
+                  {skills.map((skill: string, index: number) => (
+                    <Badge key={index} variant="secondary" className="text-xs">
+                      {skill}
+                    </Badge>
+                  ))}
                   {resume.analysis.skills.length > 6 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{resume.analysis.skills.length - 6} more
+                    <Badge
+                      variant="outline"
+                      className="text-xs cursor-pointer"
+                      onClick={() => setShowMore(!showMore)}
+                    >
+                      {showMore
+                        ? `less`
+                        : `+${resume.analysis.skills.length - 6} more`}
                     </Badge>
                   )}
                 </div>
