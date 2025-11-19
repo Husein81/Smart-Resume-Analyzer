@@ -48,7 +48,12 @@ export default function ResumeDetailsPage({ resume }: Props) {
             </Button>
             <h1 className="text-4xl font-bold mb-2">{resume.fileName}</h1>
             <p className="text-muted-foreground">
-              Uploaded on {new Date(resume.createdAt).toLocaleDateString()}
+              Uploaded on{" "}
+              {new Date(resume.createdAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
             </p>
           </div>
           <div className="flex gap-2">
@@ -93,7 +98,11 @@ export default function ResumeDetailsPage({ resume }: Props) {
                     <Icon name="Calendar" className="w-3 h-3 mr-1" />
                     {new Date(
                       resume.analysis.createdAt || ""
-                    ).toLocaleDateString()}
+                    ).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
                   </Badge>
                 </div>
               </div>

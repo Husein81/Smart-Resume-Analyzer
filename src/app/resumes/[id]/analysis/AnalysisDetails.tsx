@@ -287,7 +287,14 @@ export default function AnalysisDetails({ resumeId }: { resumeId: string }) {
               </h4>
               <p className="text-sm text-blue-600/90">
                 This resume was analyzed on{" "}
-                {new Date(resume.analysis.createdAt || "").toLocaleDateString()}
+                {new Date(resume.analysis.createdAt || "").toLocaleDateString(
+                  "en-US",
+                  {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  }
+                )}
                 . Starting a new analysis will replace the previous results.
               </p>
             </div>
