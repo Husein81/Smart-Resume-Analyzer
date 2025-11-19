@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { Activity, useState } from "react";
 
 type Props = {
-  resume: Resume | null;
+  resume?: Resume;
 };
 
 export default function ResumeDetailsPage({ resume }: Props) {
